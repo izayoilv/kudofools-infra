@@ -21,7 +21,7 @@ spec:
           emptyDir: {}
       containers:
         - name: agent
-          image: woodpeckerci/woodpecker-agent:v3.15.0
+          image: woodpeckerci/woodpecker-agent:v3.16.0
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
