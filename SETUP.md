@@ -228,7 +228,7 @@ steps:
     commands:
       - apk add --no-cache curl
       - curl -sL https://github.com/moby/buildkit/releases/download/v0.31.0/buildkit-v0.31.0.linux-arm64.tar.gz | tar -xz -C /usr/local bin/buildctl
-      - buildctl --addr tcp://buildkitd-service.default.svc:1234 build \
+      - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
           --frontend dockerfile.v0 \
           --local context=/tmp/build \
           --local dockerfile=/tmp/build \

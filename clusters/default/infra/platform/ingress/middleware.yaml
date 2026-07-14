@@ -1,7 +1,7 @@
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: forgejo-security-headers
+  name: kudofools-infra-security-headers
   namespace: default
 spec:
   headers:
@@ -19,7 +19,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: forgejo-rate-limit
+  name: kudofools-infra-rate-limit
   namespace: default
 spec:
   rateLimit:

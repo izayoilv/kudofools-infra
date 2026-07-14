@@ -51,6 +51,25 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
+  name: buildkitd-network-policy
+  namespace: buildkitd
+spec:
+  podSelector:
+    matchLabels:
+      app: buildkitd
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: woodpecker-pipelines
+      ports:
+        - port: 1234
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
   name: registry-network-policy
   namespace: default
 spec:

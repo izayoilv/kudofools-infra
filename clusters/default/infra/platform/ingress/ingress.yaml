@@ -5,8 +5,8 @@ metadata:
   namespace: default
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: |
-      default-forgejo-rate-limit@kubernetescrd,
-      default-forgejo-security-headers@kubernetescrd
+      default-kudofools-infra-rate-limit@kubernetescrd,
+      default-kudofools-infra-security-headers@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
@@ -28,8 +28,8 @@ metadata:
   namespace: default
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: |
-      default-forgejo-rate-limit@kubernetescrd,
-      default-forgejo-security-headers@kubernetescrd
+      default-kudofools-infra-rate-limit@kubernetescrd,
+      default-kudofools-infra-security-headers@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
@@ -51,8 +51,8 @@ metadata:
   namespace: default
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: |
-      default-forgejo-rate-limit@kubernetescrd,
-      default-forgejo-security-headers@kubernetescrd
+      default-kudofools-infra-rate-limit@kubernetescrd,
+      default-kudofools-infra-security-headers@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
