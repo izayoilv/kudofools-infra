@@ -11,7 +11,7 @@ spec:
     branch: main
   secretRef:
     name: flux-system
-  url: https://forgejo.kudofools.dev/IzayoiKr/kudofools-infra.git
+  url: https://forgejo.kudofools.dev/izayoilv/kudofools-infra.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

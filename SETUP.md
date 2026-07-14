@@ -25,9 +25,9 @@ Restart k3s: `sudo systemctl restart k3s`
 ```bash
 curl -s https://fluxcd.io/install.sh | sudo bash
 flux bootstrap git \
-  --url=https://forgejo.kudofools.dev/IzayoiKr/kudofools-infra.git \
+  --url=https://forgejo.kudofools.dev/izayoilv/kudofools-infra.git \
   --branch=main \
-  --username=IzayoiKr \
+  --username=izayoilv \
   --password=<personal-access-token> \
   --token-auth \
   --path=./clusters/default
