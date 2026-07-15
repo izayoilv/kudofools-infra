@@ -1,15 +1,13 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: forgejo-eso
+  name: kudofools-infra
   namespace: flux-system
 spec:
   interval: 5m
   retryInterval: 1m
-  dependsOn:
-    - name: forgejo-infra
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./clusters/default/platform/eso-resources
+  path: ./clusters/default/infra
   prune: true

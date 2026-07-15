@@ -1,13 +1,15 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: forgejo-infra
+  name: intikepri-eso
   namespace: flux-system
 spec:
   interval: 5m
   retryInterval: 1m
+  dependsOn:
+    - name: intikepri-infra
   sourceRef:
     kind: GitRepository
-    name: flux-system
-  path: ./clusters/default/infra
+    name: intikepri-infra
+  path: ./clusters/default/platform/eso-resources
   prune: true
