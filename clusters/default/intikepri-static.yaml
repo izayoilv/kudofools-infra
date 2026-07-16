@@ -17,6 +17,8 @@ metadata:
   name: intikepri-static
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: intikepri-infra
   interval: 5m
   retryInterval: 1m
   sourceRef:
