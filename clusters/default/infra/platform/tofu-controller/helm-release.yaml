@@ -1,0 +1,37 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: tofu-controller
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://flux-iac.github.io/tofu-controller
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tofu-controller
+  namespace: flux-system
+spec:
+  interval: 30m
+  releaseName: tofu-controller
+  targetNamespace: flux-system
+  chart:
+    spec:
+      chart: tofu-controller
+      sourceRef:
+        kind: HelmRepository
+        name: tofu-controller
+      interval: 12h
+      version: "^0.16.4"
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    concurrency: 10
+    replicaCount: 1

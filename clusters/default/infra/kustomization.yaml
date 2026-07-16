@@ -4,6 +4,7 @@ resources:
   - system/
   - platform/ingress/
   - platform/eso/
+  - platform/tofu-controller/
   - apps/openbao/
   - apps/forgejo/
   - apps/registry/
