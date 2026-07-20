@@ -149,9 +149,9 @@ SECRETS=$(kubectl exec "$FORGEJO_POD" -- sh -c '
 ')
 
 kubectl exec openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao kv put kv/forgejo/secrets \
-  LFS_JWT_SECRET='$(echo "$SECRETS" | grep LFS_JWT_SECRET | cut -d= -f2)' \
-  INTERNAL_TOKEN='$(echo "$SECRETS" | grep INTERNAL_TOKEN | cut -d= -f2)' \
-  JWT_SECRET='$(echo "$SECRETS" | grep JWT_SECRET | cut -d= -f2)'"
+  LFS_JWT_SECRET='$(echo "$SECRETS" | grep "^LFS_JWT_SECRET=" | cut -d= -f2)' \
+  INTERNAL_TOKEN='$(echo "$SECRETS" | grep "^INTERNAL_TOKEN=" | cut -d= -f2)' \
+  JWT_SECRET='$(echo "$SECRETS" | grep "^JWT_SECRET=" | cut -d= -f2)'"
 ```
 
 ## 7. Trigger ESO sync
