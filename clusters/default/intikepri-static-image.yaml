@@ -37,7 +37,7 @@ spec:
       author:
         email: fluxcd@users.noreply.github.com
         name: fluxcd
-      messageTemplate: "chore(intikepri-static): update image tag to {{ .NewTag }} [skip ci]"
+      messageTemplate: "chore(intikepri-static): update image tag to {{ (index .Changed.Changes 0).NewValue }} [skip ci]"
     push:
       branch: main
   update:
