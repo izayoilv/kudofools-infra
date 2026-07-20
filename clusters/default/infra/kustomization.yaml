@@ -5,6 +5,7 @@ resources:
   - platform/ingress/
   - platform/eso/
   - platform/tofu-controller/
+  - platform/image-automation/
   - apps/openbao/
   - apps/forgejo/
   - apps/registry/

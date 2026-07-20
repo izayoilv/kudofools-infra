@@ -1,0 +1,58 @@
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: intikepri-static
+  namespace: flux-system
+spec:
+  image: docker.io/izayoilv/intikepri-static
+  interval: 12h
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: intikepri-static
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: intikepri-static
+  filterTags:
+    pattern: '^build-(?P<number>\d{6})-sha-[a-f0-9]{8}$'
+    extract: "$number"
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: intikepri-static
+  namespace: flux-system
+spec:
+  interval: 12h
+  sourceRef:
+    kind: GitRepository
+    name: intikepri-static
+  git:
+    commit:
+      author:
+        email: fluxcd@users.noreply.github.com
+        name: fluxcd
+      messageTemplate: "chore(intikepri-static): update image tag to {{ .NewTag }} [skip ci]"
+    push:
+      branch: main
+  update:
+    path: ./deploy
+    strategy: Setters
+---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: intikepri-static-image
+  namespace: flux-system
+spec:
+  type: dockerhub
+  secretRef:
+    name: intikepri-static-webhook
+  resources:
+    - kind: ImageRepository
+      name: intikepri-static

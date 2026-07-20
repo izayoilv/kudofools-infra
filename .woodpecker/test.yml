@@ -3,19 +3,19 @@ when:
 
 steps:
   - name: check-tools-and-env
-    image: moby/buildkit:v0.31.0
+    image: moby/buildkit:v0.31.2
     commands:
       - buildctl --version
       - echo "Testing on repo $CI_REPO at commit $CI_COMMIT_SHA"
 
   - name: test-build-and-push
-    image: moby/buildkit:v0.31.0
+    image: moby/buildkit:v0.31.2
     environment:
       REGISTRY_PASSWORD:
         from_secret: registry_password
     commands:
       - mkdir -p /tmp/build
-      - echo 'FROM alpine:3.21' > /tmp/build/Dockerfile
+      - echo 'FROM alpine:3.24.1' > /tmp/build/Dockerfile
       - echo 'CMD ["echo", "hello-from-woodpecker"]' >> /tmp/build/Dockerfile
       - |
         for i in $(seq 1 5); do
@@ -33,7 +33,7 @@ steps:
         exit 1
 
   - name: verify-image
-    image: alpine:3.21
+    image: alpine:3.24.1
     environment:
       REGISTRY_PASSWORD:
         from_secret: registry_password
