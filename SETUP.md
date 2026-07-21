@@ -79,7 +79,7 @@ Note: `bao login` cannot persist the token file because OpenBao's container has 
 
 ```bash
 ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
-kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao ..."
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao ...
 ```
 
 ## 6. Verify OpenTofu applied OpenBao config

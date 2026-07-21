@@ -4,12 +4,25 @@ metadata:
   name: intikepri-infra
   namespace: flux-system
 spec:
-  interval: 5m
+  interval: 12h
   ref:
     branch: main
   secretRef:
     name: flux-system
   url: https://forgejo.kudofools.dev/izayoilv/intikepri-infra.git
+---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: intikepri-infra-webhook
+  namespace: flux-system
+spec:
+  type: github
+  secretRef:
+    name: intikepri-infra-webhook
+  resources:
+    - kind: GitRepository
+      name: intikepri-infra
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -17,7 +30,7 @@ metadata:
   name: intikepri-infra
   namespace: flux-system
 spec:
-  interval: 5m
+  interval: 1h
   retryInterval: 1m
   sourceRef:
     kind: GitRepository

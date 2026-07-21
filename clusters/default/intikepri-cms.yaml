@@ -4,7 +4,7 @@ metadata:
   name: intikepri-cms
   namespace: flux-system
 spec:
-  interval: 5m
+  interval: 12h
   ref:
     branch: main
   secretRef:
@@ -19,7 +19,7 @@ metadata:
 spec:
   dependsOn:
     - name: intikepri-infra
-  interval: 5m
+  interval: 1h
   retryInterval: 1m
   sourceRef:
     kind: GitRepository

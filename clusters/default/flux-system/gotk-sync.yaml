@@ -6,7 +6,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 5m0s
+  interval: 12h
   ref:
     branch: main
   secretRef:
@@ -19,7 +19,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 10m0s
+  interval: 1h
   retryInterval: 1m
   path: ./clusters/default
   prune: true

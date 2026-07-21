@@ -14,7 +14,7 @@ OpenBao's container has `readOnlyRootFilesystem: true`, so `bao login` cannot pe
 
 ```bash
 ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
-kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao <command>"
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao <command>
 ```
 
 
@@ -44,7 +44,7 @@ NEW_PASS=$(openssl rand -base64 32)
 echo "Plain-text password (update in Woodpecker UI): $NEW_PASS"
 
 HTPASSWD=$(htpasswd -Bbn admin "$NEW_PASS")
-kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/registry/auth auth.htpasswd='$HTPASSWD'"
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/registry/auth auth.htpasswd="$HTPASSWD"
 ```
 
 The registry reads the htpasswd file on every request — no restart needed. Verify auth works:
@@ -59,13 +59,13 @@ kubectl run auth-check --image=alpine:3.21 --rm -it --restart=Never -n woodpecke
 ### Woodpecker agent secret
 
 ```bash
-kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/woodpecker/secrets WOODPECKER_AGENT_SECRET=<new-value>"
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/woodpecker/secrets WOODPECKER_AGENT_SECRET=<new-value>
 ```
 
 ### Forgejo secrets
 
 ```bash
-kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/forgejo/secrets LFS_JWT_SECRET=<new-value>"
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/forgejo/secrets LFS_JWT_SECRET=<new-value>
 ```
 
 ## Regenerate Forgejo OAuth
@@ -73,9 +73,9 @@ kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao kv patch k
 Generate new credentials in Forgejo UI (Settings → Applications → OAuth2), then update OpenBao:
 
 ```bash
-kubectl exec -n openbao openbao-0 -- sh -c "BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/woodpecker/secrets \
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/woodpecker/secrets \
   WOODPECKER_FORGEJO_CLIENT=<new-client-id> \
-  WOODPECKER_FORGEJO_SECRET=<new-client-secret>"
+  WOODPECKER_FORGEJO_SECRET=<new-client-secret>
 ```
 
 ## Force ESO sync
@@ -92,6 +92,49 @@ Verify the Kubernetes secret was updated:
 
 ```bash
 kubectl get secret -n registry registry-auth -o jsonpath='{.data.auth\.htpasswd}' | base64 -d
+```
+
+## Webhook token
+
+The Receiver triggers reconciliation on push, eliminating the need for frequent polling.
+
+| GitRepository | Receiver | ExternalSecret | Token path |
+|---|---|---|---|
+| `flux-system` (kudofools-infra) | `kudofools-infra-webhook` | `kudofools-infra-webhook` | `kv/kudofools-infra/webhook-token` |
+
+To set up:
+
+```bash
+# 1. Generate token
+KUDOFOOLS_TOKEN=$(openssl rand -base64 32)
+
+# 2. Set root token and write to OpenBao
+ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/kudofools-infra/webhook-token token=$KUDOFOOLS_TOKEN
+
+# 3. Get webhook path
+echo "kudofools-infra: http://notification-controller.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system kudofools-infra-webhook -o jsonpath='{.status.webhookPath}')"
+```
+
+### Forgejo webhook configuration
+
+Go to **kudofools-infra repo → Settings → Webhooks → Add Webhook** and select **Forgejo**:
+
+| Field | Value |
+|---|---|
+| Target URL | `http://notification-controller.flux-system.svc.cluster.local:80<webhook-path>` |
+| HTTP Method | POST |
+| POST Content Type | `application/json` |
+| Secret | the token from `kv/kudofools-infra/webhook-token` |
+| Trigger On | Push Events |
+| Branch filter | `main` |
+
+Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
+
+### Force ESO sync
+
+```bash
+kubectl annotate externalsecret -n flux-system kudofools-infra-webhook force-sync=$(date +%s) --overwrite
 ```
 
 ## Updating OpenTofu Configs
@@ -128,6 +171,7 @@ kubectl annotate receiver -n flux-system intikepri-static-git reconcile.fluxcd.i
 kubectl annotate receiver -n flux-system intikepri-static-image reconcile.fluxcd.io/requestedAt="$(date +%s)" --field-manager=flux
 kubectl annotate receiver -n flux-system intikepri-cms-git reconcile.fluxcd.io/requestedAt="$(date +%s)" --field-manager=flux
 kubectl annotate receiver -n flux-system intikepri-cms-image reconcile.fluxcd.io/requestedAt="$(date +%s)" --field-manager=flux
+kubectl annotate receiver -n flux-system kudofools-infra-webhook reconcile.fluxcd.io/requestedAt="$(date +%s)" --field-manager=flux
 ```
 
 ## Drift Recovery

@@ -6,7 +6,7 @@ metadata:
 spec:
   dependsOn:
     - name: kudofools-infra
-  interval: 5m
+  interval: 1h
   path: ./clusters/default/opentofu
   prune: true
   sourceRef:
