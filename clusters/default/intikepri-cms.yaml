@@ -11,6 +11,19 @@ spec:
     name: flux-system
   url: https://forgejo.kudofools.dev/izayoilv/intikepri-cms.git
 ---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: intikepri-cms-git
+  namespace: flux-system
+spec:
+  type: github
+  secretRef:
+    name: intikepri-cms-webhook
+  resources:
+    - kind: GitRepository
+      name: intikepri-cms
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
