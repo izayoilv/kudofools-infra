@@ -28,7 +28,7 @@ metadata:
   name: intikepri-cms
   namespace: flux-system
 spec:
-  interval: 12h
+  interval: 5m
   sourceRef:
     kind: GitRepository
     name: intikepri-cms
