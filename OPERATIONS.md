@@ -113,7 +113,8 @@ ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/kudofools-infra/webhook-token token=$KUDOFOOLS_TOKEN
 
 # 3. Get webhook path
-echo "kudofools-infra: http://notification-controller.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system kudofools-infra-webhook -o jsonpath='{.status.webhookPath}')"
+echo "kudofools-infra internal: http://notification-controller.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system kudofools-infra-webhook -o jsonpath='{.status.webhookPath}')"
+echo "kudofools-infra public:   https://flux-webhook.kudofools.dev$(kubectl get receiver -n flux-system kudofools-infra-webhook -o jsonpath='{.status.webhookPath}')"
 ```
 
 ### Forgejo webhook configuration
