@@ -102,6 +102,7 @@ The Receiver triggers reconciliation on push, eliminating the need for frequent 
 |---|---|---|---|
 | `flux-system` (kudofools-infra) | `kudofools-infra-webhook` | `kudofools-infra-webhook` | `kv/kudofools-infra/webhook-token` |
 | `matrix-conduit` | `matrix-conduit-webhook` | `matrix-conduit-webhook` | `kv/matrix-conduit/webhook-token` |
+| `element-web` | `element-web-webhook` | `element-web-webhook` | `kv/element-web/webhook-token` |
 
 To set up:
 
@@ -159,6 +160,37 @@ Then configure the webhook in the **matrix-conduit repo → Settings → Webhook
 | HTTP Method | POST |
 | POST Content Type | `application/json` |
 | Secret | the token from `kv/matrix-conduit/webhook-token` |
+| Trigger On | Push Events |
+| Branch filter | `main` |
+
+Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
+
+### Element Web webhook setup
+
+```bash
+# 1. Generate token
+ELEMENT_TOKEN=$(openssl rand -base64 32)
+
+# 2. Write to OpenBao
+ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/element-web/webhook-token token=$ELEMENT_TOKEN
+
+# 3. Force ESO sync
+kubectl annotate externalsecret -n flux-system element-web-webhook force-sync=$(date +%s) --overwrite
+
+# 4. Get webhook path
+echo "element-web internal: http://webhook-receiver.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system element-web-webhook -o jsonpath='{.status.webhookPath}')"
+echo "element-web public:   https://flux-webhook.kudofools.dev$(kubectl get receiver -n flux-system element-web-webhook -o jsonpath='{.status.webhookPath}')"
+```
+
+Then configure the webhook in the **element-web repo → Settings → Webhooks → Add Webhook** (select **Forgejo**):
+
+| Field | Value |
+|---|---|
+| Target URL | `http://webhook-receiver.flux-system.svc.cluster.local:80<webhook-path>` |
+| HTTP Method | POST |
+| POST Content Type | `application/json` |
+| Secret | the token from `kv/element-web/webhook-token` |
 | Trigger On | Push Events |
 | Branch filter | `main` |
 
