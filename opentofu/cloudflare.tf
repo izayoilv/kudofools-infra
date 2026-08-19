@@ -29,6 +29,8 @@ locals {
         service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: flux-webhook.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
+      - hostname: conduit.kudofools.dev
+        service: http://traefik.kube-system.svc.cluster.local:80
       - service: http_status:404
   EOF
 }
@@ -94,6 +96,15 @@ resource "cloudflare_dns_record" "openbao_dev" {
 resource "cloudflare_dns_record" "flux_webhook_dev" {
   zone_id = var.cloudflare_zone_id
   name    = "flux-webhook"
+  type    = "CNAME"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
+  proxied = true
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "conduit_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "conduit"
   type    = "CNAME"
   content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
   proxied = true

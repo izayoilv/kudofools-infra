@@ -46,7 +46,7 @@ resource "vault_kubernetes_auth_backend_role" "eso" {
   role_name                        = "eso"
   bound_service_account_names      = ["external-secrets"]
   bound_service_account_namespaces = ["flux-system"]
-  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.registry.name, vault_policy.kudofools_infra.name]
+  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.registry.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name]
   token_ttl                        = 3600
 }
 
@@ -59,6 +59,15 @@ resource "vault_policy" "kudofools_infra" {
   name   = "kudofools-infra"
   policy = <<EOT
 path "kv/data/kudofools-infra/*" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_policy" "matrix_conduit" {
+  name   = "matrix-conduit"
+  policy = <<EOT
+path "kv/data/matrix-conduit/*" {
   capabilities = ["read"]
 }
 EOT
