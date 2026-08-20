@@ -121,3 +121,12 @@ resource "cloudflare_dns_record" "element_dev" {
   proxied = true
   ttl     = 1
 }
+
+resource "cloudflare_dns_record" "turn_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "turn"
+  type    = "A"
+  content = "45.32.109.191"
+  proxied = false
+  ttl     = 1
+}
