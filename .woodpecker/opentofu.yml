@@ -1,7 +1,10 @@
 when:
   - event: push
     branch: main
-  - event: pull_request
+    path:
+      include:
+        - opentofu/**/*
+        - .woodpecker/opentofu.yml
   - event: manual
 
 clone:

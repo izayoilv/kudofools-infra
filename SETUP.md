@@ -125,6 +125,32 @@ kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/for
   LFS_JWT_SECRET='$(echo "$SECRETS" | grep "^LFS_JWT_SECRET=" | cut -d= -f2)' \
   INTERNAL_TOKEN='$(echo "$SECRETS" | grep "^INTERNAL_TOKEN=" | cut -d= -f2)' \
   JWT_SECRET='$(echo "$SECRETS" | grep "^JWT_SECRET=" | cut -d= -f2)'"
+
+# registry — rathole relay client config (external access via the VPS relay)
+# The rathole client (pod in the registry namespace) tunnels traffic from the
+# public relay to the in-cluster registry-service. Its full client.toml is
+# stored in OpenBao: it contains the shared tunnel token (matching the VPS
+# server.toml) and the relay's Noise public key.
+RATHOLE_TOKEN=$(openssl rand -base64 32)
+echo "Copy this token into the relay server.toml: $RATHOLE_TOKEN"
+
+cat > /tmp/rathole-client.toml <<EOF
+[client]
+remote_addr = "<remote-ip>:2333"
+
+[client.transport]
+type = "noise"
+
+[client.transport.noise]
+remote_public_key = "<relay-noise-public-key>"
+
+[client.services.registry]
+token = "$RATHOLE_TOKEN"
+local_addr = "registry-service.registry.svc:5000"
+EOF
+
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/registry/rathole \
+  client.toml="$(cat /tmp/rathole-client.toml)"
 ```
 
 ## 8. Configure Web UI user
@@ -149,6 +175,7 @@ Force ESO to sync immediately:
 
 ```bash
 kubectl annotate externalsecret -n registry registry-auth force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n registry registry-rathole force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n woodpecker woodpecker-secrets force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n forgejo forgejo-secrets force-sync=$(date +%s) --overwrite
 ```
@@ -166,8 +193,8 @@ By default, ESO syncs every 1h (configured in `external-secrets.yaml`).
 
 Set in Woodpecker web UI (`https://woodpecker.kudofools.dev` → infra → Settings → Secrets):
 
-| Name | Value |
-|------|-------|
+| Name                | Value                                                                         |
+| ------------------- | ----------------------------------------------------------------------------- |
 | `REGISTRY_PASSWORD` | Plain-text password used to generate the htpasswd entry in `kv/registry/auth` |
 
 ## 11. Forgejo OAuth app
@@ -217,24 +244,24 @@ steps:
       - apk add --no-cache curl
       - curl -sL https://github.com/moby/buildkit/releases/download/v0.31.0/buildkit-v0.31.0.linux-arm64.tar.gz | tar -xz -C /usr/local bin/buildctl
       - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
-          --frontend dockerfile.v0 \
-          --local context=/tmp/build \
-          --local dockerfile=/tmp/build \
-          --output type=image,name=registry-service.registry.svc:5000/my-image:latest,push=true,registry.insecure=true,registry.username=admin,registry.password=$REGISTRY_PASSWORD
+        --frontend dockerfile.v0 \
+        --local context=/tmp/build \
+        --local dockerfile=/tmp/build \
+        --output type=image,name=registry-service.registry.svc:5000/my-image:latest,push=true,registry.insecure=true,registry.username=admin,registry.password=$REGISTRY_PASSWORD
 ```
 
 To verify the push succeeded, query the registry API from the pipeline:
 
 ```yaml
-  verify:
-    image: alpine:3.21
-    environment:
-      REGISTRY_PASSWORD:
-        from_secret: registry_password
-    commands:
-      - apk add --no-cache curl
-      - STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "admin:$REGISTRY_PASSWORD" "http://registry-service.registry.svc:5000/v2/my-image/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
-      - test "$STATUS" = "200" && echo "Image verified"
+verify:
+  image: alpine:3.21
+  environment:
+    REGISTRY_PASSWORD:
+      from_secret: registry_password
+  commands:
+    - apk add --no-cache curl
+    - STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "admin:$REGISTRY_PASSWORD" "http://registry-service.registry.svc:5000/v2/my-image/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
+    - test "$STATUS" = "200" && echo "Image verified"
 ```
 
 ## CI/CD flow

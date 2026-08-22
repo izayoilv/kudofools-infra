@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rathole-client
+  namespace: registry
+  labels:
+    app.kubernetes.io/name: rathole-client
+    app.kubernetes.io/instance: rathole-client-prod
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rathole-client
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rathole-client
+        app.kubernetes.io/instance: rathole-client-prod
+        app.kubernetes.io/part-of: kudofools
+        app.kubernetes.io/managed-by: flux
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: rathole
+          image: registry-service.registry.svc:5000/rathole-client:0.5.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+          args:
+            - /etc/rathole/client.toml
+          env:
+            - name: RUST_LOG
+              value: info
+          resources:
+            limits:
+              cpu: "1"
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 16Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/rathole
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: registry-rathole

@@ -130,3 +130,12 @@ resource "cloudflare_dns_record" "turn_dev" {
   proxied = false
   ttl     = 1
 }
+
+resource "cloudflare_dns_record" "registry_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "registry"
+  type    = "A"
+  content = "45.32.109.191"
+  proxied = false
+  ttl     = 1
+}

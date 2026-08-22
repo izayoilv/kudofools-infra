@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - registry-config.yaml
   - registry.yaml
+  - rathole-client.yaml

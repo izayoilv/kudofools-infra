@@ -1,0 +1,37 @@
+when:
+  - event: push
+    branch: main
+    path:
+      include:
+        - rathole/Dockerfile
+        - .woodpecker/rathole.yml
+  - event: manual
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+    settings:
+      depth: 1
+      lfs: false
+
+steps:
+  build-and-push:
+    image: moby/buildkit:v0.31.2
+    environment:
+      REGISTRY_PASSWORD:
+        from_secret: registry_password
+    commands:
+      - |
+        for i in 1 2 3; do
+          buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
+            --frontend dockerfile.v0 \
+            --local context=rathole \
+            --local dockerfile=rathole \
+            --output type=image,name=registry-service.registry.svc:5000/rathole-client:0.5.0,push=true,registry.insecure=true,registry.username=admin,registry.password=$REGISTRY_PASSWORD && break
+          if [ $i -eq 3 ]; then
+            echo "All BuildKit push attempts failed."
+            exit 1
+          fi
+          echo "buildctl failed (attempt $i/3), retrying in 10s..."
+          sleep 10
+        done
