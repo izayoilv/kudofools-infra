@@ -5,7 +5,16 @@ when:
       include:
         - opentofu/**/*
         - .woodpecker/opentofu.yml
+  - event: pull_request
+    path:
+      include:
+        - opentofu/**/*
+        - .woodpecker/opentofu.yml
   - event: manual
+
+variables:
+  - &tflint "ghcr.io/terraform-linters/tflint:latest"
+  - &tofu "ghcr.io/opentofu/opentofu:1.12.4"
 
 clone:
   git:
@@ -16,13 +25,13 @@ clone:
 
 steps:
   tflint:
-    image: ghcr.io/terraform-linters/tflint:latest
+    image: *tflint
     commands:
       - cd opentofu
       - tflint --init
       - tflint
   lint-and-validate:
-    image: ghcr.io/opentofu/opentofu:1.12.4
+    image: *tofu
     environment:
       GODEBUG: asyncpreemptoff=1
       TF_PLUGIN_CACHE_DIR: /tmp/tofu-cache

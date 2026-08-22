@@ -7,6 +7,9 @@ when:
         - .woodpecker/rathole.yml
   - event: manual
 
+variables:
+  - &buildkit "moby/buildkit:v0.31.2"
+
 clone:
   git:
     image: woodpeckerci/plugin-git
@@ -16,7 +19,7 @@ clone:
 
 steps:
   build-and-push:
-    image: moby/buildkit:v0.31.2
+    image: *buildkit
     environment:
       REGISTRY_PASSWORD:
         from_secret: registry_password
