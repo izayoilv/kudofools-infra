@@ -103,14 +103,14 @@ ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/woodpecker/secrets \
   WOODPECKER_AGENT_SECRET=<value> \
   WOODPECKER_FORGEJO_CLIENT=<value> \
-  WOODPECKER_FORGEJO_SECRET=<value>"
+  WOODPECKER_FORGEJO_SECRET=<value>
 
 # registry — generate htpasswd entry, store the raw bcrypt line
 NEW_PASS=$(openssl rand -base64 32)
 echo "Plain-text password (save for Woodpecker UI): $NEW_PASS"
 HTPASSWD=$(htpasswd -Bbn admin "$NEW_PASS")
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/registry/auth \
-  auth.htpasswd='$HTPASSWD'"
+  auth.htpasswd="$HTPASSWD"
 
 # forgejo
 FORGEJO_POD=$(kubectl get pod -n forgejo -l app.kubernetes.io/name=forgejo -o jsonpath='{.items[0].metadata.name}')
@@ -122,9 +122,9 @@ SECRETS=$(kubectl exec -n forgejo "$FORGEJO_POD" -- sh -c '
 ')
 
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/forgejo/secrets \
-  LFS_JWT_SECRET='$(echo "$SECRETS" | grep "^LFS_JWT_SECRET=" | cut -d= -f2)' \
-  INTERNAL_TOKEN='$(echo "$SECRETS" | grep "^INTERNAL_TOKEN=" | cut -d= -f2)' \
-  JWT_SECRET='$(echo "$SECRETS" | grep "^JWT_SECRET=" | cut -d= -f2)'"
+  LFS_JWT_SECRET="$(echo "$SECRETS" | grep "^LFS_JWT_SECRET=" | cut -d= -f2)" \
+  INTERNAL_TOKEN="$(echo "$SECRETS" | grep "^INTERNAL_TOKEN=" | cut -d= -f2)" \
+  JWT_SECRET="$(echo "$SECRETS" | grep "^JWT_SECRET=" | cut -d= -f2)"
 
 # registry — rathole relay client config (external access via the VPS relay)
 # The rathole client (pod in the registry namespace) tunnels traffic from the

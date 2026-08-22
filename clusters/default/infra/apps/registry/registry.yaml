@@ -58,7 +58,7 @@ spec:
             periodSeconds: 5
           volumeMounts:
             - name: config
-              mountPath: /etc/docker/registry/config.yml
+              mountPath: /etc/distribution/config.yml
               subPath: config.yml
             - name: auth
               mountPath: /etc/docker/registry/auth.htpasswd
