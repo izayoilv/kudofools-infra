@@ -43,3 +43,16 @@ spec:
   update:
     path: ./deploy
     strategy: Setters
+---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: intikepri-static-image
+  namespace: flux-system
+spec:
+  type: generic
+  secretRef:
+    name: intikepri-static-webhook
+  resources:
+    - kind: ImageRepository
+      name: intikepri-static
