@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - registry-config.yaml
-  - registry.yaml
-  - registry-nodeport.yaml
+  - namespace.yaml
+  - deployment.yaml

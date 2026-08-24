@@ -8,6 +8,9 @@ resources:
   - platform/image-automation/
   - platform/cloudflared/
   - apps/openbao/
+  - apps/lldap/
   - apps/forgejo/
   - apps/registry/
+  - apps/zot/
+  - apps/rathole/
   - apps/woodpecker/

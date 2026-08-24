@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rathole-client
-  namespace: registry
+  namespace: rathole
   labels:
     app.kubernetes.io/name: rathole-client
     app.kubernetes.io/instance: rathole-client-prod
@@ -56,4 +56,4 @@ spec:
       volumes:
         - name: config
           secret:
-            secretName: registry-rathole
+            secretName: rathole-client

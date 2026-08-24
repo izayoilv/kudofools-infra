@@ -58,7 +58,7 @@ kubectl run auth-check --image=alpine:3.21 --rm -it --restart=Never -n woodpecke
 
 ### Rathole relay token (registry external access)
 
-The rathole relay token must match between the in-cluster client (`kv/registry/rathole` → `client.toml`) and the relay server's `server.toml` on the VPS.
+The rathole relay token must match between the in-cluster client (`kv/rathole/client.toml` → `client.toml`) and the relay server's `server.toml` on the VPS.
 
 ```bash
 ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
@@ -67,16 +67,16 @@ ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
 RATHOLE_TOKEN=$(openssl rand -base64 32)
 
 # 2. Update OpenBao (recreate the client.toml entry with the new token)
-kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/registry/rathole \
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/rathole/client.toml \
   client.toml="$(cat /tmp/rathole-client.toml)"
 
 # 3. Force ESO sync
-kubectl annotate externalsecret -n registry registry-rathole force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n rathole rathole-client force-sync=$(date +%s) --overwrite
 
 # 4. Update the VPS server.toml with the same token and restart the relay
 ```
 
-No registry restart needed — only the rathole client pod restarts when the mounted secret changes (or force it with `kubectl rollout restart deployment -n registry rathole-client`).
+No registry restart needed — only the rathole client pod restarts when the mounted secret changes (or force it with `kubectl rollout restart deployment -n rathole rathole-client`).
 
 ### Woodpecker agent secret
 

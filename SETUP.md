@@ -129,10 +129,11 @@ kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/for
   JWT_SECRET="$(echo "$SECRETS" | grep "^JWT_SECRET=" | cut -d= -f2)"
 
 # registry — rathole relay client config (external access via the VPS relay)
-# The rathole client (pod in the registry namespace) tunnels traffic from the
-# public relay to the in-cluster registry-service. Its full client.toml is
-# stored in OpenBao: it contains the shared tunnel token (matching the VPS
-# server.toml) and the relay's Noise public key.
+# The rathole client (pod in the rathole namespace) tunnels traffic from the
+# public relay to in-cluster services. Its full client.toml is stored in
+# OpenBao: it contains the shared tunnel token (matching the VPS server.toml)
+# and the relay's Noise public key. Add one [client.services.<name>] entry per
+# exposed service.
 RATHOLE_TOKEN=$(openssl rand -base64 32)
 echo "Copy this token into the relay server.toml: $RATHOLE_TOKEN"
 
@@ -148,11 +149,25 @@ remote_public_key = "<relay-noise-public-key>"
 
 [client.services.registry]
 token = "$RATHOLE_TOKEN"
-local_addr = "registry-service.registry.svc:5000"
+local_addr = "zot.zot.svc:5000"
 EOF
 
-kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/registry/rathole \
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/rathole/client.toml \
   client.toml="$(cat /tmp/rathole-client.toml)"
+
+# lldap — LDAP directory: admin password, JWT secret, key seed
+LLDAP_ADMIN_PASS=$(openssl rand -base64 32)
+echo "LLDAP admin password (log in at https://lldap.kudofools.dev with user 'admin'): $LLDAP_ADMIN_PASS"
+LLDAP_JWT_SECRET=$(openssl rand -base64 32)
+LLDAP_KEY_SEED=$(openssl rand -base64 32)
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/lldap/secrets \
+  LLDAP_LDAP_USER_PASS=$LLDAP_ADMIN_PASS \
+  LLDAP_JWT_SECRET=$LLDAP_JWT_SECRET \
+  LLDAP_KEY_SEED=$LLDAP_KEY_SEED
+
+# zot — LDAP bind credentials (admin user of lldap, DN is cn=admin,ou=people,<base>)
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/zot/secrets \
+  ldap-creds.json="{\"bindDN\":\"cn=admin,ou=people,dc=kudofools,dc=dev\",\"bindPassword\":\"$LLDAP_ADMIN_PASS\"}"
 ```
 
 ## 8. Configure Web UI user
@@ -177,7 +192,9 @@ Force ESO to sync immediately:
 
 ```bash
 kubectl annotate externalsecret -n registry registry-auth force-sync=$(date +%s) --overwrite
-kubectl annotate externalsecret -n registry registry-rathole force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n rathole rathole-client force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n lldap lldap-secrets force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n zot zot-ldap-creds force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n woodpecker woodpecker-secrets force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n forgejo forgejo-secrets force-sync=$(date +%s) --overwrite
 ```

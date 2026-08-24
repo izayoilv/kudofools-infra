@@ -33,6 +33,8 @@ locals {
         service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: element.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
+      - hostname: lldap.kudofools.dev
+        service: http://traefik.kube-system.svc.cluster.local:80
       - service: http_status:404
   EOF
 }
@@ -137,5 +139,14 @@ resource "cloudflare_dns_record" "registry_dev" {
   type    = "A"
   content = "45.32.109.191"
   proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "lldap_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "lldap"
+  type    = "CNAME"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
+  proxied = true
   ttl     = 1
 }

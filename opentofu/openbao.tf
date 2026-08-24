@@ -46,7 +46,7 @@ resource "vault_kubernetes_auth_backend_role" "eso" {
   role_name                        = "eso"
   bound_service_account_names      = ["external-secrets"]
   bound_service_account_namespaces = ["flux-system"]
-  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.registry.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name, vault_policy.element_web.name]
+  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.registry.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name, vault_policy.element_web.name, vault_policy.lldap.name, vault_policy.zot.name, vault_policy.rathole.name]
   token_ttl                        = 3600
 }
 
@@ -77,6 +77,33 @@ resource "vault_policy" "element_web" {
   name   = "element-web"
   policy = <<EOT
 path "kv/data/element-web/*" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_policy" "lldap" {
+  name   = "lldap"
+  policy = <<EOT
+path "kv/data/lldap/*" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_policy" "zot" {
+  name   = "zot"
+  policy = <<EOT
+path "kv/data/zot/*" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_policy" "rathole" {
+  name   = "rathole"
+  policy = <<EOT
+path "kv/data/rathole/*" {
   capabilities = ["read"]
 }
 EOT

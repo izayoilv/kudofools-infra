@@ -128,13 +128,6 @@ spec:
       ports:
         - port: 5000
           protocol: TCP
-    - from:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: rathole-client
-      ports:
-        - port: 5000
-          protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
