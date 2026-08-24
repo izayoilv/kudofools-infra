@@ -70,5 +70,17 @@ data:
       },
       "log": {
         "level": "info"
+      },
+      "extensions": {
+        "events": {
+          "enable": true,
+          "sinks": [
+            {
+              "type": "http",
+              "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/3d7dc3f3bc7c9f9088ad1149ebf2f7b8f8d3ab5a9c1a652dbfe0b120943364e4",
+              "timeout": "5s"
+            }
+          ]
+        }
       }
     }

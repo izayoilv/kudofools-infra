@@ -199,6 +199,34 @@ Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
 kubectl annotate externalsecret -n flux-system kudofools-infra-webhook force-sync=$(date +%s) --overwrite
 ```
 
+## Image webhook (zot → Flux)
+
+Image pushes to zot trigger instant image-automation scans: zot's `events` extension POSTs to a **generic** Flux Receiver on every push, which forces the ImageRepository to re-scan (instead of waiting up to 12h).
+
+Generic receivers accept any POST; security is the random webhook path (no signature check, unlike the Forgejo webhooks).
+
+Current wiring (in `clusters/default/infra/apps/zot/config.yaml` + `clusters/default/intikepri-static-image.yaml`):
+
+| ImageRepository | Receiver | zot events sink |
+|---|---|---|
+| `intikepri-static` | `intikepri-static-image` (type `generic`) | one HTTP sink → receiver's internal webhook URL |
+
+To add a new image webhook (e.g. after migrating another repo to zot):
+
+```bash
+# 1. Add a generic Receiver for the ImageRepository (kudofools-infra manifest):
+#    type: generic, secretRef: <existing webhook secret>, resources: [ImageRepository/<name>]
+
+# 2. Get the generated webhook path (after Flux applies the receiver)
+echo "internal: http://webhook-receiver.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system <receiver-name> -o jsonpath='{.status.webhookPath}')"
+
+# 3. Add the address to zot's events sinks (clusters/default/infra/apps/zot/config.yaml)
+#    and restart zot (ConfigMap is subPath-mounted):
+kubectl rollout restart deployment -n zot zot
+```
+
+Note: one sink fires on **all** zot pushes, so a single receiver triggers scans for every repo — extra scans are harmless.
+
 ## Updating OpenTofu Configs
 
 1. Edit files in `opentofu/`
@@ -216,7 +244,7 @@ kubectl annotate terraform -n flux-system opentofu reconcile.fluxcd.io/requested
 To force immediate reconciliation of image automation resources instead of waiting for the polling interval:
 
 ```bash
-# Force ImageRepository to check Docker Hub
+# Force ImageRepository to check the zot registry
 kubectl annotate imagerepository -n flux-system intikepri-static reconcile.fluxcd.io/requestedAt="$(date +%s)" --field-manager=flux
 kubectl annotate imagerepository -n flux-system intikepri-cms reconcile.fluxcd.io/requestedAt="$(date +%s)" --field-manager=flux
 
