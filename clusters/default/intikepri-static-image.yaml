@@ -4,7 +4,7 @@ metadata:
   name: intikepri-static
   namespace: flux-system
 spec:
-  image: docker.io/izayoilv/intikepri-static
+  image: registry.kudofools.dev/intikepri/intikepri-static
   interval: 12h
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
@@ -43,16 +43,3 @@ spec:
   update:
     path: ./deploy
     strategy: Setters
----
-apiVersion: notification.toolkit.fluxcd.io/v1
-kind: Receiver
-metadata:
-  name: intikepri-static-image
-  namespace: flux-system
-spec:
-  type: dockerhub
-  secretRef:
-    name: intikepri-static-webhook
-  resources:
-    - kind: ImageRepository
-      name: intikepri-static
