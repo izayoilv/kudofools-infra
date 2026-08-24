@@ -2,13 +2,13 @@
 
 ## 1. Node configuration
 
-**`/etc/rancher/k3s/registries.yaml`** — allows containerd to pull from the internal HTTP registry. The FQDN resolves via CoreDNS, which is available once the cluster is running:
+**`/etc/rancher/k3s/registries.yaml`** — allows containerd (on the node) to pull from the internal HTTP registry. The endpoint points at the registry **NodePort on `127.0.0.1`** because the node's DNS (the router) cannot resolve in-cluster `.svc` names — only CoreDNS inside the cluster can. The `registry-nodeport` service (port `30050`) is managed by Flux.
 
 ```yaml
 mirrors:
   "registry-service.registry.svc:5000":
     endpoint:
-      - "http://registry-service.registry.svc:5000"
+      - "http://127.0.0.1:30050"
 configs:
   "registry-service.registry.svc:5000":
     auth:
@@ -18,7 +18,9 @@ configs:
       insecure_skip_verify: true
 ```
 
-Restart k3s: `sudo systemctl restart k3s`
+The `password` must match the registry's current htpasswd entry (rotated via `kv/registry/auth` in OpenBao).
+
+Restart k3s after editing: `sudo systemctl restart k3s`
 
 ## 2. Bootstrap Flux
 
@@ -242,12 +244,14 @@ steps:
         from_secret: registry_password
     commands:
       - apk add --no-cache curl
+      - mkdir -p ~/.docker
+      - echo "{\"auths\":{\"registry-service.registry.svc:5000\":{\"username\":\"admin\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
       - curl -sL https://github.com/moby/buildkit/releases/download/v0.31.0/buildkit-v0.31.0.linux-arm64.tar.gz | tar -xz -C /usr/local bin/buildctl
       - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
         --frontend dockerfile.v0 \
         --local context=/tmp/build \
         --local dockerfile=/tmp/build \
-        --output type=image,name=registry-service.registry.svc:5000/my-image:latest,push=true,registry.insecure=true,registry.username=admin,registry.password=$REGISTRY_PASSWORD
+        --output type=image,name=registry-service.registry.svc:5000/my-image:latest,push=true,registry.insecure=true
 ```
 
 To verify the push succeeded, query the registry API from the pipeline:
@@ -260,7 +264,8 @@ verify:
       from_secret: registry_password
   commands:
     - apk add --no-cache curl
-    - STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "admin:$REGISTRY_PASSWORD" "http://registry-service.registry.svc:5000/v2/my-image/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
+    - AUTH="admin:$${REGISTRY_PASSWORD}"
+    - STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "$AUTH" "http://registry-service.registry.svc:5000/v2/my-image/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
     - test "$STATUS" = "200" && echo "Image verified"
 ```
 

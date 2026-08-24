@@ -24,13 +24,15 @@ steps:
       REGISTRY_PASSWORD:
         from_secret: registry_password
     commands:
+      - mkdir -p ~/.docker
+      - echo "{\"auths\":{\"registry-service.registry.svc:5000\":{\"username\":\"admin\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
       - |
         for i in 1 2 3; do
           buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
             --frontend dockerfile.v0 \
             --local context=rathole \
             --local dockerfile=rathole \
-            --output type=image,name=registry-service.registry.svc:5000/rathole-client:0.5.0,push=true,registry.insecure=true,registry.username=admin,registry.password=$REGISTRY_PASSWORD && break
+            --output type=image,name=registry-service.registry.svc:5000/rathole-client:0.5.0,push=true,registry.insecure=true && break
           if [ $i -eq 3 ]; then
             echo "All BuildKit push attempts failed."
             exit 1
