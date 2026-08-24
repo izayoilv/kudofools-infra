@@ -18,23 +18,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: registry-data-pvc
-  namespace: registry
-  labels:
-    app.kubernetes.io/name: registry
-    app.kubernetes.io/part-of: kudofools
-    app.kubernetes.io/managed-by: flux
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: local-path
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: woodpecker-data-pvc
   namespace: woodpecker
   labels:

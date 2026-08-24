@@ -95,7 +95,9 @@ clusters/default/
 │   └── apps/
 │       ├── openbao/         # Secrets engine (Vault-compatible)
 │       ├── forgejo/         # Git server + CI webhooks
-│       ├── registry/        # Internal Docker registry
+│       ├── lldap/           # LDAP directory (registry + app auth)
+│       ├── zot/             # OCI registry (LDAP auth, per-repo ACLs)
+│       ├── rathole/         # Reverse-proxy relay client (exposes services via VPS)
 │       └── woodpecker/      # CI server + agent + buildkitd
 ├── platform/
 │   └── eso-resources/       # ClusterSecretStore + ExternalSecrets

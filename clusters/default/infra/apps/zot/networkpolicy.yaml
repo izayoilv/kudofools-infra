@@ -21,3 +21,17 @@ spec:
       ports:
         - port: 5000
           protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: woodpecker-pipelines
+      ports:
+        - port: 5000
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: buildkitd
+      ports:
+        - port: 5000
+          protocol: TCP

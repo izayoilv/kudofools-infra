@@ -94,44 +94,6 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: registry-network-policy
-  namespace: registry
-  labels:
-    app.kubernetes.io/name: registry
-    app.kubernetes.io/part-of: kudofools
-    app.kubernetes.io/managed-by: flux
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: registry
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-      ports:
-        - port: 5000
-          protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: woodpecker-pipelines
-      ports:
-        - port: 5000
-          protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: buildkitd
-      ports:
-        - port: 5000
-          protocol: TCP
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
   name: openbao-network-policy
   namespace: openbao
   labels:

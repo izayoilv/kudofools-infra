@@ -43,27 +43,6 @@ spec:
 apiVersion: v1
 kind: LimitRange
 metadata:
-  name: registry-limits
-  namespace: registry
-  labels:
-    app.kubernetes.io/part-of: kudofools
-    app.kubernetes.io/managed-by: flux
-spec:
-  limits:
-    - default:
-        cpu: "300m"
-        memory: 256Mi
-      defaultRequest:
-        cpu: "100m"
-        memory: 64Mi
-      max:
-        cpu: "1"
-        memory: 1Gi
-      type: Container
----
-apiVersion: v1
-kind: LimitRange
-metadata:
   name: woodpecker-limits
   namespace: woodpecker
   labels:

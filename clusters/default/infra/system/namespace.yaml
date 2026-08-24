@@ -21,16 +21,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: registry
-  labels:
-    app.kubernetes.io/name: registry
-    app.kubernetes.io/part-of: kudofools
-    app.kubernetes.io/managed-by: flux
-    tier: application
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: woodpecker
   labels:
     app.kubernetes.io/name: woodpecker

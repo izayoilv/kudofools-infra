@@ -26,7 +26,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: rathole
-          image: registry-service.registry.svc:5000/rathole-client:0.5.0
+          image: zot.zot.svc:5000/public/rathole-client:0.5.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

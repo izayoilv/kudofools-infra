@@ -39,6 +39,25 @@ data:
               "anonymousPolicy": ["read"],
               "defaultPolicy": ["read", "create", "update"]
             },
+            "intikepri/*": {
+              "defaultPolicy": [],
+              "policies": [
+                {
+                  "groups": ["cn=intikepri,ou=groups,dc=kudofools,dc=dev"],
+                  "actions": ["read", "create", "update", "delete"]
+                }
+              ]
+            },
+            "intikepri/intikepri-static": {
+              "anonymousPolicy": ["read"],
+              "defaultPolicy": [],
+              "policies": [
+                {
+                  "groups": ["cn=intikepri,ou=groups,dc=kudofools,dc=dev"],
+                  "actions": ["read", "create", "update", "delete"]
+                }
+              ]
+            },
             "**": {
               "defaultPolicy": []
             }

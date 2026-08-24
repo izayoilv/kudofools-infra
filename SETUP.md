@@ -2,23 +2,14 @@
 
 ## 1. Node configuration
 
-**`/etc/rancher/k3s/registries.yaml`** — allows containerd (on the node) to pull from the internal HTTP registry. The endpoint points at the registry **NodePort on `127.0.0.1`** because the node's DNS (the router) cannot resolve in-cluster `.svc` names — only CoreDNS inside the cluster can. The `registry-nodeport` service (port `30050`) is managed by Flux.
+**`/etc/rancher/k3s/registries.yaml`** — allows containerd (on the node) to pull images from the in-cluster zot registry. The endpoint points at the zot **NodePort on `127.0.0.1`** because the node's DNS (the router) cannot resolve in-cluster `.svc` names — only CoreDNS inside the cluster can. The `zot-nodeport` service (port `30050`) is managed by Flux. No `configs` block is needed: `public/*` images are pulled anonymously.
 
 ```yaml
 mirrors:
-  "registry-service.registry.svc:5000":
+  "zot.zot.svc:5000":
     endpoint:
       - "http://127.0.0.1:30050"
-configs:
-  "registry-service.registry.svc:5000":
-    auth:
-      username: admin
-      password: <password>
-    tls:
-      insecure_skip_verify: true
 ```
-
-The `password` must match the registry's current htpasswd entry (rotated via `kv/registry/auth` in OpenBao).
 
 Restart k3s after editing: `sudo systemctl restart k3s`
 
@@ -191,7 +182,6 @@ Log in at https://openbao.kudofools.dev/ui/ with the password above. The usernam
 Force ESO to sync immediately:
 
 ```bash
-kubectl annotate externalsecret -n registry registry-auth force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n rathole rathole-client force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n lldap lldap-secrets force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n zot zot-ldap-creds force-sync=$(date +%s) --overwrite
@@ -203,7 +193,7 @@ Verify:
 
 ```bash
 kubectl get externalsecrets -A
-kubectl get secret -n registry registry-auth -o jsonpath='{.data.auth\.htpasswd}' | base64 -d
+kubectl get secret -n zot zot-ldap-creds -o name
 ```
 
 By default, ESO syncs every 1h (configured in `external-secrets.yaml`).
@@ -212,9 +202,9 @@ By default, ESO syncs every 1h (configured in `external-secrets.yaml`).
 
 Set in Woodpecker web UI (`https://woodpecker.kudofools.dev` → infra → Settings → Secrets):
 
-| Name                | Value                                                                         |
-| ------------------- | ----------------------------------------------------------------------------- |
-| `REGISTRY_PASSWORD` | Plain-text password used to generate the htpasswd entry in `kv/registry/auth` |
+| Name                | Value                                                       |
+| ------------------- | ----------------------------------------------------------- |
+| `REGISTRY_PASSWORD` | Password of the `izayoilv` user in LLDAP (registry pushes)  |
 
 ## 11. Forgejo OAuth app
 
@@ -233,42 +223,39 @@ To update non-secret config, edit `forgejo-config.yaml`, push, and Flux syncs. R
 kubectl rollout restart deployment -n forgejo forgejo
 ```
 
-## Pushing images to the internal registry
+## Pushing images to zot
 
-The registry at `registry-service.registry.svc:5000` is HTTP-only and not exposed externally.
+The zot registry is public at `registry.kudofools.dev` (via the VPS relay) and internal at `zot.zot.svc:5000`. `public/*` images are pullable anonymously; pushes always require auth (LDAP users from LLDAP).
 
-### Via SSH tunnel (manual push from another device)
+### Via podman (anywhere with access)
 
 ```bash
-# Forward localhost:5000 to the in-cluster registry
-ssh -L 5000:registry-service.registry.svc:5000 izayoilv@rpi5 -N
-
-# Tag and push (docker trusts localhost without TLS)
-docker tag alpine:latest localhost:5000/my-image:latest
-docker push localhost:5000/my-image:latest
+podman login registry.kudofools.dev    # izayoilv / LLDAP password
+podman build -t registry.kudofools.dev/public/my-image:latest .
+podman push registry.kudofools.dev/public/my-image:latest
 ```
+
+Private images go under your username: `registry.kudofools.dev/izayoilv/my-image:latest`.
 
 ### Via Woodpecker CI (automated build and push)
 
-Builds run in the `woodpecker-pipelines` namespace and push via buildkitd.
+Builds run in the `woodpecker-pipelines` namespace and push via buildkitd to the internal zot.
 
 ```yaml
 steps:
   build-and-push:
-    image: alpine:3.21
+    image: moby/buildkit:v0.31.2
     environment:
       REGISTRY_PASSWORD:
         from_secret: registry_password
     commands:
-      - apk add --no-cache curl
       - mkdir -p ~/.docker
-      - echo "{\"auths\":{\"registry-service.registry.svc:5000\":{\"username\":\"admin\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
-      - curl -sL https://github.com/moby/buildkit/releases/download/v0.31.0/buildkit-v0.31.0.linux-arm64.tar.gz | tar -xz -C /usr/local bin/buildctl
+      - echo "{\"auths\":{\"zot.zot.svc:5000\":{\"username\":\"izayoilv\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
       - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
         --frontend dockerfile.v0 \
         --local context=/tmp/build \
         --local dockerfile=/tmp/build \
-        --output type=image,name=registry-service.registry.svc:5000/my-image:latest,push=true,registry.insecure=true
+        --output type=image,name=zot.zot.svc:5000/public/my-image:latest,push=true,registry.insecure=true
 ```
 
 To verify the push succeeded, query the registry API from the pipeline:
@@ -281,8 +268,8 @@ verify:
       from_secret: registry_password
   commands:
     - apk add --no-cache curl
-    - AUTH="admin:$${REGISTRY_PASSWORD}"
-    - STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "$AUTH" "http://registry-service.registry.svc:5000/v2/my-image/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
+    - AUTH="izayoilv:$${REGISTRY_PASSWORD}"
+    - STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "$AUTH" "http://zot.zot.svc:5000/v2/public/my-image/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
     - test "$STATUS" = "200" && echo "Image verified"
 ```
 

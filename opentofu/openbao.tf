@@ -32,21 +32,12 @@ path "kv/data/forgejo/*" {
 EOT
 }
 
-resource "vault_policy" "registry" {
-  name   = "registry"
-  policy = <<EOT
-path "kv/data/registry/*" {
-  capabilities = ["read"]
-}
-EOT
-}
-
 resource "vault_kubernetes_auth_backend_role" "eso" {
   backend                          = vault_kubernetes_auth_backend_config.kubernetes.backend
   role_name                        = "eso"
   bound_service_account_names      = ["external-secrets"]
   bound_service_account_namespaces = ["flux-system"]
-  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.registry.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name, vault_policy.element_web.name, vault_policy.lldap.name, vault_policy.zot.name, vault_policy.rathole.name]
+  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name, vault_policy.element_web.name, vault_policy.lldap.name, vault_policy.zot.name, vault_policy.rathole.name]
   token_ttl                        = 3600
 }
 

@@ -19,7 +19,7 @@ steps:
         from_secret: registry_password
     commands:
       - mkdir -p ~/.docker
-      - echo "{\"auths\":{\"registry-service.registry.svc:5000\":{\"username\":\"admin\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
+      - echo "{\"auths\":{\"zot.zot.svc:5000\":{\"username\":\"izayoilv\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
       - mkdir -p /tmp/build
       - echo 'FROM alpine:3.24.1' > /tmp/build/Dockerfile
       - echo 'CMD ["echo", "hello-from-woodpecker"]' >> /tmp/build/Dockerfile
@@ -29,7 +29,7 @@ steps:
             --frontend dockerfile.v0 \
             --local context=/tmp/build \
             --local dockerfile=/tmp/build \
-            --output type=image,name=registry-service.registry.svc:5000/test-hello:latest,push=true,registry.insecure=true; then
+            --output type=image,name=zot.zot.svc:5000/public/test-hello:latest,push=true,registry.insecure=true; then
             exit 0
           fi
           echo "buildctl failed (attempt $i/5), retrying in 10s..."
@@ -45,8 +45,8 @@ steps:
         from_secret: registry_password
     commands:
       - apk add --no-cache curl
-      - AUTH="admin:$${REGISTRY_PASSWORD}"
+      - AUTH="izayoilv:$${REGISTRY_PASSWORD}"
       - |
-        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "$AUTH" "http://registry-service.registry.svc:5000/v2/test-hello/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "$AUTH" "http://zot.zot.svc:5000/v2/public/test-hello/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
         echo "HTTP status = $STATUS"
         if [ "$STATUS" = "200" ]; then echo "OK"; else echo "FAIL: $STATUS"; exit 1; fi

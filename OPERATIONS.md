@@ -35,28 +35,7 @@ All commands require the OpenBao root token:
 ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
 ```
 
-### Registry password
-
-The htpasswd entry in OpenBao and Woodpecker's `REGISTRY_PASSWORD` must stay in sync.
-
-```bash
-NEW_PASS=$(openssl rand -base64 32)
-echo "Plain-text password (update in Woodpecker UI): $NEW_PASS"
-
-HTPASSWD=$(htpasswd -Bbn admin "$NEW_PASS")
-kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/registry/auth auth.htpasswd="$HTPASSWD"
-```
-
-The registry reads the htpasswd file on every request — no restart needed. Verify auth works:
-
-```bash
-kubectl run auth-check --image=alpine:3.21 --rm -it --restart=Never -n woodpecker-pipelines -- sh -c "
-  apk add --no-cache curl
-  curl -s -u 'admin:$NEW_PASS' 'http://registry-service.registry.svc:5000/v2/_catalog'
-"
-```
-
-### Rathole relay token (registry external access)
+### Rathole relay token (external access)
 
 The rathole relay token must match between the in-cluster client (`kv/rathole/client.toml` → `client.toml`) and the relay server's `server.toml` on the VPS.
 
@@ -76,7 +55,7 @@ kubectl annotate externalsecret -n rathole rathole-client force-sync=$(date +%s)
 # 4. Update the VPS server.toml with the same token and restart the relay
 ```
 
-No registry restart needed — only the rathole client pod restarts when the mounted secret changes (or force it with `kubectl rollout restart deployment -n rathole rathole-client`).
+The rathole client pod restarts when the mounted secret changes (or force it with `kubectl rollout restart deployment -n rathole rathole-client`).
 
 ### Woodpecker agent secret
 
@@ -105,15 +84,11 @@ kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/w
 ESO refreshes secrets every 1h by default. Force an immediate sync per secret:
 
 ```bash
-kubectl annotate externalsecret -n registry registry-auth force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n rathole rathole-client force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n lldap lldap-secrets force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n zot zot-ldap-creds force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n woodpecker woodpecker-secrets force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n forgejo forgejo-secrets force-sync=$(date +%s) --overwrite
-```
-
-Verify the Kubernetes secret was updated:
-
-```bash
-kubectl get secret -n registry registry-auth -o jsonpath='{.data.auth\.htpasswd}' | base64 -d
 ```
 
 ## Webhook token
@@ -263,9 +238,9 @@ kubectl annotate receiver -n flux-system kudofools-infra-webhook reconcile.fluxc
 
 ## Building the rathole client image
 
-The arm64 `rathole-client` image is built by Woodpecker (`.woodpecker/rathole.yml`) from `rathole/Dockerfile` and pushed to the internal registry as `registry-service.registry.svc:5000/rathole-client:0.5.0`. The pipeline triggers only when `rathole/Dockerfile` or `.woodpecker/rathole.yml` change.
+The arm64 `rathole-client` image is built by Woodpecker (`.woodpecker/rathole.yml`) from `rathole/Dockerfile` and pushed to the internal zot as `zot.zot.svc:5000/public/rathole-client:0.5.0`. The pipeline triggers only when `rathole/Dockerfile` or `.woodpecker/rathole.yml` change.
 
-To bump the rathole version: change `RATHOLE_VERSION` in `rathole/Dockerfile`, the image tag in `.woodpecker/rathole.yml`, and the image reference in `clusters/default/infra/apps/registry/rathole-client.yaml`.
+To bump the rathole version: change `RATHOLE_VERSION` in `rathole/Dockerfile`, the image tag in `.woodpecker/rathole.yml`, and the image reference in `clusters/default/infra/apps/rathole/deployment.yaml`.
 
 ## Drift Recovery
 
