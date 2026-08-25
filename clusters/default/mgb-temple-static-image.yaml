@@ -1,0 +1,58 @@
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: mgb-temple-static
+  namespace: flux-system
+spec:
+  image: registry.kudofools.dev/mgb-temple/mgb-temple-static
+  interval: 12h
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: mgb-temple-static
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: mgb-temple-static
+  filterTags:
+    pattern: '^build-(?P<number>\d{6})-sha-[a-f0-9]{8}$'
+    extract: "$number"
+  policy:
+    alphabetical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: mgb-temple-static
+  namespace: flux-system
+spec:
+  interval: 1h
+  sourceRef:
+    kind: GitRepository
+    name: mgb-temple-static
+  git:
+    commit:
+      author:
+        email: fluxcd@users.noreply.github.com
+        name: fluxcd
+      messageTemplate: "chore(mgb-temple-static): update image tag to {{ (index .Changed.Changes 0).NewValue }} [skip ci]"
+    push:
+      branch: main
+  update:
+    path: ./deploy
+    strategy: Setters
+---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: mgb-temple-static-image
+  namespace: flux-system
+spec:
+  type: generic
+  secretRef:
+    name: mgb-temple-static-webhook
+  resources:
+    - kind: ImageRepository
+      name: mgb-temple-static
