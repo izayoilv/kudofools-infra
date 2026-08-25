@@ -39,7 +39,8 @@ data:
               "anonymousPolicy": ["read"],
               "defaultPolicy": ["read", "create", "update"]
             },
-            "intikepri/*": {
+            "intikepri/intikepri-static": {
+              "anonymousPolicy": ["read"],
               "defaultPolicy": [],
               "policies": [
                 {
@@ -48,8 +49,7 @@ data:
                 }
               ]
             },
-            "intikepri/intikepri-static": {
-              "anonymousPolicy": ["read"],
+            "intikepri/intikepri-cms": {
               "defaultPolicy": [],
               "policies": [
                 {

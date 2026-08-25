@@ -11,6 +11,8 @@ mirrors:
       - "http://127.0.0.1:30050"
 ```
 
+Private images pulled by the node use **`imagePullSecrets`** on the workload (a docker-registry secret managed by ESO), not registries.yaml — no node config needed for them.
+
 Restart k3s after editing: `sudo systemctl restart k3s`
 
 ## 2. Bootstrap Flux

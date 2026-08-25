@@ -4,7 +4,9 @@ metadata:
   name: intikepri-cms
   namespace: flux-system
 spec:
-  image: docker.io/izayoilv/intikepri-cms
+  image: registry.kudofools.dev/intikepri/intikepri-cms
+  secretRef:
+    name: intikepri-image-creds
   interval: 12h
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
@@ -50,7 +52,7 @@ metadata:
   name: intikepri-cms-image
   namespace: flux-system
 spec:
-  type: dockerhub
+  type: generic
   secretRef:
     name: intikepri-cms-webhook
   resources:
