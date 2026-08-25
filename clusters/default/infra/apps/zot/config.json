@@ -1,0 +1,109 @@
+{
+  "distSpecVersion": "1.1.1",
+  "storage": {
+    "rootDirectory": "/var/lib/zot",
+    "dedupe": true,
+    "gc": true
+  },
+  "http": {
+    "address": "0.0.0.0",
+    "port": "5000",
+    "realm": "zot",
+    "auth": {
+      "ldap": {
+        "credentialsFile": "/etc/zot/ldap-creds.json",
+        "address": "lldap-ldap.lldap.svc",
+        "port": 3890,
+        "insecure": true,
+        "baseDN": "dc=kudofools,dc=dev",
+        "userAttribute": "uid",
+        "userGroupAttribute": "memberOf",
+        "subtreeSearch": true
+      },
+      "failDelay": 5
+    },
+    "accessControl": {
+      "repositories": {
+        "public/*": {
+          "anonymousPolicy": [
+            "read"
+          ],
+          "defaultPolicy": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        "intikepri/intikepri-static": {
+          "anonymousPolicy": [
+            "read"
+          ],
+          "defaultPolicy": [],
+          "policies": [
+            {
+              "groups": [
+                "cn=intikepri,ou=groups,dc=kudofools,dc=dev"
+              ],
+              "actions": [
+                "read",
+                "create",
+                "update",
+                "delete"
+              ]
+            }
+          ]
+        },
+        "intikepri/intikepri-cms": {
+          "defaultPolicy": [],
+          "policies": [
+            {
+              "groups": [
+                "cn=intikepri,ou=groups,dc=kudofools,dc=dev"
+              ],
+              "actions": [
+                "read",
+                "create",
+                "update",
+                "delete"
+              ]
+            }
+          ]
+        },
+        "**": {
+          "defaultPolicy": []
+        }
+      },
+      "adminPolicy": {
+        "users": [
+          "admin"
+        ],
+        "actions": [
+          "read",
+          "create",
+          "update",
+          "delete"
+        ]
+      }
+    }
+  },
+  "log": {
+    "level": "info"
+  },
+  "extensions": {
+    "events": {
+      "enable": true,
+      "sinks": [
+        {
+          "type": "http",
+          "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/3d7dc3f3bc7c9f9088ad1149ebf2f7b8f8d3ab5a9c1a652dbfe0b120943364e4",
+          "timeout": "5s"
+        },
+        {
+          "type": "http",
+          "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/b80a99c186649d3c80b0dd7b160d9ce015b148736e7a8d31b87f7b80db816b1e",
+          "timeout": "5s"
+        }
+      ]
+    }
+  }
+}
