@@ -121,6 +121,11 @@
           "type": "http",
           "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/b80a99c186649d3c80b0dd7b160d9ce015b148736e7a8d31b87f7b80db816b1e",
           "timeout": "5s"
+        },
+        {
+          "type": "http",
+          "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/e9f31c9784dd6c95b21561e9912b444e4818e82d48f8fb0f9da49160f4c21373",
+          "timeout": "5s"
         }
       ]
     }
