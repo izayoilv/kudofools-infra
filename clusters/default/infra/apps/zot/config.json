@@ -25,50 +25,26 @@
     "accessControl": {
       "repositories": {
         "public/*": {
-          "anonymousPolicy": [
-            "read"
-          ],
-          "defaultPolicy": [
-            "read",
-            "create",
-            "update"
-          ]
+          "anonymousPolicy": ["read"],
+          "defaultPolicy": ["read", "create", "update"]
         },
         "intikepri/intikepri-static": {
-          "anonymousPolicy": [
-            "read"
-          ],
+          "anonymousPolicy": ["read"],
           "defaultPolicy": [],
           "policies": [
             {
-              "groups": [
-                "cn=intikepri,ou=groups,dc=kudofools,dc=dev"
-              ],
-              "actions": [
-                "read",
-                "create",
-                "update",
-                "delete"
-              ]
+              "groups": ["cn=intikepri,ou=groups,dc=kudofools,dc=dev"],
+              "actions": ["read", "create", "update", "delete"]
             }
           ]
         },
-        "mgb-temple/*": {
-          "anonymousPolicy": [
-            "read"
-          ],
+        "mgb-temple/mgb-temple-static": {
+          "anonymousPolicy": ["read"],
           "defaultPolicy": [],
           "policies": [
             {
-              "groups": [
-                "cn=intikepri,ou=groups,dc=kudofools,dc=dev"
-              ],
-              "actions": [
-                "read",
-                "create",
-                "update",
-                "delete"
-              ]
+              "groups": ["cn=mgb-temple,ou=groups,dc=kudofools,dc=dev"],
+              "actions": ["read", "create", "update", "delete"]
             }
           ]
         },
@@ -76,15 +52,8 @@
           "defaultPolicy": [],
           "policies": [
             {
-              "groups": [
-                "cn=intikepri,ou=groups,dc=kudofools,dc=dev"
-              ],
-              "actions": [
-                "read",
-                "create",
-                "update",
-                "delete"
-              ]
+              "groups": ["cn=intikepri,ou=groups,dc=kudofools,dc=dev"],
+              "actions": ["read", "create", "update", "delete"]
             }
           ]
         },
@@ -93,15 +62,8 @@
         }
       },
       "adminPolicy": {
-        "users": [
-          "admin"
-        ],
-        "actions": [
-          "read",
-          "create",
-          "update",
-          "delete"
-        ]
+        "users": ["admin"],
+        "actions": ["read", "create", "update", "delete"]
       }
     }
   },
