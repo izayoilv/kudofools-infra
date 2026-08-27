@@ -170,3 +170,12 @@ resource "cloudflare_dns_record" "netbird_dev" {
   proxied = false
   ttl     = 1
 }
+
+resource "cloudflare_dns_record" "dashboard_netbird_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "dashboard.netbird"
+  type    = "A"
+  content = "45.32.109.191"
+  proxied = false
+  ttl     = 1
+}
