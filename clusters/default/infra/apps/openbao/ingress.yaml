@@ -4,6 +4,7 @@ metadata:
   name: openbao-ingress
   namespace: openbao
   annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
     traefik.ingress.kubernetes.io/router.middlewares: |
       kube-system-infra-rate-limit@kubernetescrd,
       kube-system-infra-security-headers@kubernetescrd
@@ -13,6 +14,10 @@ metadata:
     app.kubernetes.io/managed-by: flux
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - openbao.kudofools.dev
+      secretName: openbao-kudofools-dev-tls
   rules:
     - host: openbao.kudofools.dev
       http:

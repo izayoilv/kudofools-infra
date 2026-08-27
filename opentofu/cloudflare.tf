@@ -25,8 +25,6 @@ locals {
         service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: woodpecker.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
-      - hostname: openbao.kudofools.dev
-        service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: flux-webhook.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: conduit.kudofools.dev
@@ -84,15 +82,6 @@ resource "cloudflare_dns_record" "forgejo_dev" {
 resource "cloudflare_dns_record" "woodpecker_dev" {
   zone_id = var.cloudflare_zone_id
   name    = "woodpecker"
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
-  proxied = true
-  ttl     = 1
-}
-
-resource "cloudflare_dns_record" "openbao_dev" {
-  zone_id = var.cloudflare_zone_id
-  name    = "openbao"
   type    = "CNAME"
   content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
   proxied = true
@@ -159,6 +148,15 @@ resource "cloudflare_dns_record" "mahagiribuddha_dev" {
   type    = "CNAME"
   content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
   proxied = true
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "openbao_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "openbao"
+  type    = "A"
+  content = "45.32.109.191"
+  proxied = false
   ttl     = 1
 }
 
