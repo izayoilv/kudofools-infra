@@ -9,3 +9,5 @@ metadata:
 spec:
   dnsZoneRef:
     name: kudofools.dev
+  workloadOverride:
+    replicas: 1
