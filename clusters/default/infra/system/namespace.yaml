@@ -47,3 +47,13 @@ metadata:
     app.kubernetes.io/part-of: kudofools
     app.kubernetes.io/managed-by: flux
     tier: ci
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mgb-temple-cms
+  labels:
+    app.kubernetes.io/name: mgb-temple-cms
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+    tier: application

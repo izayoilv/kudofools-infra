@@ -48,6 +48,15 @@
             }
           ]
         },
+        "mgb-temple/mgb-temple-cms": {
+          "defaultPolicy": [],
+          "policies": [
+            {
+              "groups": ["cn=mgb-temple,ou=groups,dc=kudofools,dc=dev"],
+              "actions": ["read", "create", "update", "delete"]
+            }
+          ]
+        },
         "intikepri/intikepri-cms": {
           "defaultPolicy": [],
           "policies": [
