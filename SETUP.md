@@ -161,6 +161,15 @@ kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/lld
 # zot — LDAP bind credentials (admin user of lldap, DN is cn=admin,ou=people,<base>)
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/zot/secrets \
   ldap-creds.json="{\"bindDN\":\"cn=admin,ou=people,dc=kudofools,dc=dev\",\"bindPassword\":\"$LLDAP_ADMIN_PASS\"}"
+
+# kudofools-infra — Cloudflare API token for cert-manager DNS-01 (Let's Encrypt).
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/kudofools-infra/cloudflare-token \
+  token=<cloudflare-api-token>
+
+# kudofools-infra — NetBird personal access token (dashboard Settings -> Personal
+# Access Tokens, role: network admin, e.g. user "netbird-operator").
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/kudofools-infra/netbird-mgmt-api-key \
+  token=<netbird-pat>
 ```
 
 ## 8. Configure Web UI user
@@ -189,6 +198,8 @@ kubectl annotate externalsecret -n lldap lldap-secrets force-sync=$(date +%s) --
 kubectl annotate externalsecret -n zot zot-ldap-creds force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n woodpecker woodpecker-secrets force-sync=$(date +%s) --overwrite
 kubectl annotate externalsecret -n forgejo forgejo-secrets force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n cert-manager cloudflare-api-token force-sync=$(date +%s) --overwrite
+kubectl annotate externalsecret -n netbird netbird-mgmt-api-key force-sync=$(date +%s) --overwrite
 ```
 
 Verify:
@@ -204,9 +215,9 @@ By default, ESO syncs every 1h (configured in `external-secrets.yaml`).
 
 Set in Woodpecker web UI (`https://woodpecker.kudofools.dev` → infra → Settings → Secrets):
 
-| Name                | Value                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| `REGISTRY_PASSWORD` | Password of the `izayoilv` user in LLDAP (registry pushes)  |
+| Name                | Value                                                      |
+| ------------------- | ---------------------------------------------------------- |
+| `REGISTRY_PASSWORD` | Password of the `izayoilv` user in LLDAP (registry pushes) |
 
 ## 11. Forgejo OAuth app
 

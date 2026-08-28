@@ -1,0 +1,11 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkRouter
+metadata:
+  name: kudofools-cluster
+  namespace: netbird
+  labels:
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  dnsZoneRef:
+    name: kudofools.dev
