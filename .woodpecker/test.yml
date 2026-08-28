@@ -31,18 +31,13 @@ steps:
       - echo 'FROM alpine:3.24.1' > /tmp/build/Dockerfile
       - echo 'CMD ["echo", "hello-from-woodpecker"]' >> /tmp/build/Dockerfile
       - |
-        for i in $(seq 1 10); do
-          if nc -z buildkitd-service.buildkitd.svc 1234 2>/dev/null; then
-            echo "buildkitd is accepting connections"
-            break
-          fi
-          echo "waiting for buildkitd ($i/10)..."
-          sleep 2
-        done
-        buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
-          --frontend dockerfile.v0 \
-          --local context=/tmp/build \
-          --local dockerfile=/tmp/build \
+        echo "waiting for buildkitd..."
+        timeout 30 sh -c 'until nc -z buildkitd-service.buildkitd.svc 1234 2>/dev/null; do echo "waiting..."; sleep 2; done'
+        echo "buildkitd is ready"
+      - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build
+          --frontend dockerfile.v0
+          --local context=/tmp/build
+          --local dockerfile=/tmp/build
           --output type=image,name=zot.zot.svc:5000/public/test-hello:latest,push=true,registry.insecure=true
 
   - name: verify-image

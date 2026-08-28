@@ -27,16 +27,11 @@ steps:
       - mkdir -p ~/.docker
       - echo "{\"auths\":{\"zot.zot.svc:5000\":{\"username\":\"izayoilv\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
       - |
-        for i in 1 2 3; do
-          buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
-            --frontend dockerfile.v0 \
-            --local context=rathole \
-            --local dockerfile=rathole \
-            --output type=image,name=zot.zot.svc:5000/public/rathole-client:0.5.0,push=true,registry.insecure=true && break
-          if [ $i -eq 3 ]; then
-            echo "All BuildKit push attempts failed."
-            exit 1
-          fi
-          echo "buildctl failed (attempt $i/3), retrying in 10s..."
-          sleep 10
-        done
+        echo "waiting for buildkitd..."
+        timeout 30 sh -c 'until nc -z buildkitd-service.buildkitd.svc 1234 2>/dev/null; do echo "waiting..."; sleep 2; done'
+        echo "buildkitd is ready"
+      - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build
+          --frontend dockerfile.v0
+          --local context=rathole
+          --local dockerfile=rathole
+          --output type=image,name=zot.zot.svc:5000/public/rathole-client:0.5.0,push=true,registry.insecure=true
