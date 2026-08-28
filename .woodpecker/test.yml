@@ -5,6 +5,13 @@ variables:
   - &buildkit "moby/buildkit:v0.31.2"
   - &alpine "alpine:3.24"
 
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+    settings:
+      depth: 1
+      lfs: false
+
 steps:
   - name: check-tools-and-env
     image: *buildkit
@@ -24,19 +31,19 @@ steps:
       - echo 'FROM alpine:3.24.1' > /tmp/build/Dockerfile
       - echo 'CMD ["echo", "hello-from-woodpecker"]' >> /tmp/build/Dockerfile
       - |
-        for i in $(seq 1 5); do
-          if buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
-            --frontend dockerfile.v0 \
-            --local context=/tmp/build \
-            --local dockerfile=/tmp/build \
-            --output type=image,name=zot.zot.svc:5000/public/test-hello:latest,push=true,registry.insecure=true; then
-            exit 0
+        for i in $(seq 1 10); do
+          if nc -z buildkitd-service.buildkitd.svc 1234 2>/dev/null; then
+            echo "buildkitd is accepting connections"
+            break
           fi
-          echo "buildctl failed (attempt $i/5), retrying in 10s..."
-          sleep 10
+          echo "waiting for buildkitd ($i/10)..."
+          sleep 2
         done
-        echo "All 5 retries exhausted"
-        exit 1
+        buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build \
+          --frontend dockerfile.v0 \
+          --local context=/tmp/build \
+          --local dockerfile=/tmp/build \
+          --output type=image,name=zot.zot.svc:5000/public/test-hello:latest,push=true,registry.insecure=true
 
   - name: verify-image
     image: *alpine
