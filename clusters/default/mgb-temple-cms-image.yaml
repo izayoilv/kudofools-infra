@@ -5,6 +5,8 @@ metadata:
   namespace: flux-system
 spec:
   image: registry.kudofools.dev/mgb-temple/mgb-temple-cms
+  secretRef:
+    name: mgb-temple-image-creds
   interval: 12h
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
