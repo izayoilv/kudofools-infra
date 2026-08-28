@@ -35,7 +35,7 @@ locals {
         service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: mahagiribuddha.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
-      - hostname: cms.mahagiribuddha.kudofools.dev
+      - hostname: mahagiribuddha-cms.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
       - service: http_status:404
   EOF
@@ -155,7 +155,7 @@ resource "cloudflare_dns_record" "mahagiribuddha_dev" {
 
 resource "cloudflare_dns_record" "cms_mahagiribuddha_dev" {
   zone_id = var.cloudflare_zone_id
-  name    = "cms.mahagiribuddha"
+  name    = "mahagiribuddha-cms"
   type    = "CNAME"
   content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
   proxied = true
