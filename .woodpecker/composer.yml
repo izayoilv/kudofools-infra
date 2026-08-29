@@ -3,8 +3,8 @@ when:
     branch: main
     path:
       include:
-        - images/rathole/Dockerfile
-        - .woodpecker/rathole.yml
+        - images/composer/Dockerfile
+        - .woodpecker/composer.yml
   - event: manual
 
 variables:
@@ -32,7 +32,7 @@ steps:
         echo "buildkitd is ready"
       - buildctl --addr tcp://buildkitd-service.buildkitd.svc:1234 build
           --frontend dockerfile.v0
-          --local context=images/rathole
-          --local dockerfile=images/rathole
-          --output type=image,name=zot.zot.svc:5000/public/rathole-client:0.5.0,push=true,registry.insecure=true
-          --output type=image,name=zot.zot.svc:5000/public/rathole-client:latest,push=true,registry.insecure=true
+          --local context=images/composer
+          --local dockerfile=images/composer
+          --output type=image,name=zot.zot.svc:5000/public/composer:2.10,push=true,registry.insecure=true
+          --output type=image,name=zot.zot.svc:5000/public/composer:latest,push=true,registry.insecure=true
