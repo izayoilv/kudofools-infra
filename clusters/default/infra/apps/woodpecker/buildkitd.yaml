@@ -32,6 +32,8 @@ spec:
             - --addr
             - tcp://0.0.0.0:1234
             - --oci-worker-no-process-sandbox
+            - --oci-max-parallelism
+            - "2"
           ports:
             - containerPort: 1234
           securityContext:
@@ -61,8 +63,8 @@ spec:
             periodSeconds: 10
           resources:
             limits:
-              cpu: "4"
-              memory: 4Gi
+              cpu: "2"
+              memory: 2Gi
             requests:
               cpu: 500m
               memory: 512Mi

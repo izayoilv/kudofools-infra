@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: buildkit-prune
+  namespace: buildkitd
+spec:
+  schedule: "0 3 * * 0"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: prune
+              image: moby/buildkit:v0.31.2-rootless
+              args:
+                [
+                  "buildctl",
+                  "--addr",
+                  "tcp://buildkitd-service:1234",
+                  "prune",
+                  "--all",
+                  "--keep-storage=4GB",
+                  "--keep-duration=168h",
+                ]
+          restartPolicy: OnFailure

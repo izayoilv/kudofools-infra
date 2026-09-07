@@ -25,5 +25,29 @@ spec:
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
+    timeout: 15m
   values:
     installCRDs: true
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 500m
+        memory: 128Mi
+    certController:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
+    webhook:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi

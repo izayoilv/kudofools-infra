@@ -5,4 +5,5 @@ resources:
   - woodpecker-agent.yaml
   - woodpecker-agent-rbac.yaml
   - buildkitd.yaml
+  - cronjob.yaml
   - zmk-west-cache.yaml

@@ -18,3 +18,10 @@ spec:
       retries: 3
   values:
     managementURL: https://netbird.kudofools.dev
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 500m
+        memory: 128Mi
