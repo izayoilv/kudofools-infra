@@ -135,6 +135,15 @@ resource "cloudflare_dns_record" "registry_dev" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "vaultwarden_dev" {
+  zone_id = var.cloudflare_zone_id
+  name    = "vaultwarden"
+  type    = "A"
+  content = "45.32.109.191"
+  proxied = false
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "lldap_dev" {
   zone_id = var.cloudflare_zone_id
   name    = "lldap"
