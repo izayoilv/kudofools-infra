@@ -33,10 +33,6 @@ locals {
         service: http://traefik.kube-system.svc.cluster.local:80
       - hostname: lldap.kudofools.dev
         service: http://traefik.kube-system.svc.cluster.local:80
-      - hostname: mahagiribuddha.kudofools.dev
-        service: http://traefik.kube-system.svc.cluster.local:80
-      - hostname: mahagiribuddha-cms.kudofools.dev
-        service: http://traefik.kube-system.svc.cluster.local:80
       - service: http_status:404
   EOF
 }
@@ -138,24 +134,6 @@ resource "cloudflare_dns_record" "registry_dev" {
 resource "cloudflare_dns_record" "lldap_dev" {
   zone_id = var.cloudflare_zone_id
   name    = "lldap"
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
-  proxied = true
-  ttl     = 1
-}
-
-resource "cloudflare_dns_record" "mahagiribuddha_dev" {
-  zone_id = var.cloudflare_zone_id
-  name    = "mahagiribuddha"
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
-  proxied = true
-  ttl     = 1
-}
-
-resource "cloudflare_dns_record" "cms_mahagiribuddha_dev" {
-  zone_id = var.cloudflare_zone_id
-  name    = "mahagiribuddha-cms"
   type    = "CNAME"
   content = "${cloudflare_zero_trust_tunnel_cloudflared.kudofools.id}.cfargotunnel.com"
   proxied = true
