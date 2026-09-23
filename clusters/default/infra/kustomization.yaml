@@ -8,6 +8,7 @@ resources:
   - platform/image-automation/
   - platform/cloudflared/
   - platform/cert-manager/
+  - platform/monitoring/
   - apps/openbao/
   - apps/lldap/
   - apps/forgejo/

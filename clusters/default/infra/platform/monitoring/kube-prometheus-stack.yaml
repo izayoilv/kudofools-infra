@@ -1,0 +1,155 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: prometheus-community
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://prometheus-community.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  interval: 30m
+  targetNamespace: monitoring
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+      interval: 12h
+      version: "91.4.1"
+  install:
+    crds: CreateReplace
+    timeout: 15m
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    timeout: 15m
+    remediation:
+      retries: 3
+  values:
+    crds:
+      enabled: true
+    kubeEtcd:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeControllerManager:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    defaultRules:
+      rules:
+        etcd: false
+        kubeControllerManager: false
+        kubeProxy: false
+        kubeSchedulerAlerting: false
+        kubeSchedulerRecording: false
+    prometheus:
+      prometheusSpec:
+        retention: 15d
+        retentionSize: 8GB
+        scrapeInterval: 60s
+        evaluationInterval: 60s
+        enableRemoteWriteReceiver: true
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 384Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: local-path
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 10Gi
+    alertmanager:
+      config:
+        route:
+          receiver: matrix
+          group_by: [alertname, namespace]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          routes:
+            - receiver: "null"
+              matchers: ['alertname="Watchdog"']
+        receivers:
+          - name: "null"
+          - name: matrix
+            webhook_configs:
+              - url: http://matrix-alertmanager-receiver.monitoring.svc.cluster.local:12345/alerts/alerts
+                send_resolved: true
+      alertmanagerSpec:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: local-path
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 1Gi
+    grafana:
+      admin:
+        existingSecret: grafana-secrets
+      persistence:
+        enabled: true
+        storageClassName: local-path
+        size: 1Gi
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          url: http://loki.monitoring.svc.cluster.local:3100
+          access: proxy
+      resources:
+        requests:
+          cpu: 25m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 384Mi
+    prometheusOperator:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+    prometheus-node-exporter:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    kube-state-metrics:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi

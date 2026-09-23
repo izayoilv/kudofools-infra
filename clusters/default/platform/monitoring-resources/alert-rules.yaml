@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kudofools-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  groups:
+    - name: kudofools.rpi
+      rules:
+        - alert: NodeTemperatureHigh
+          expr: node_hwmon_temp_celsius > 80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "RPi5 temperature above 80°C"
+            description: "node_hwmon_temp_celsius is {{ $value }} on {{ $labels.instance }}."
+    - name: kudofools.flux
+      rules:
+        - alert: FluxResourceNotReady
+          expr: gotk_reconcile_condition{type="Ready",status="False"} == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Flux {{ $labels.kind }} {{ $labels.name }} is not ready"
+            description: "The resource has been failing reconciliation for 15 minutes."
+    - name: kudofools.certmanager
+      rules:
+        - alert: CertificateExpiringSoon
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) < 14 * 24 * 60 * 60
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.name }} expires in less than 14 days"
+            description: "Certificate in namespace {{ $labels.namespace }} expires at {{ $value | humanizeTimestamp }}."

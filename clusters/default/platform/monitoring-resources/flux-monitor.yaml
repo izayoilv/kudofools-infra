@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: flux-controllers
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  namespaceSelector:
+    matchNames: [flux-system]
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - helm-controller
+          - kustomize-controller
+          - source-controller
+          - notification-controller
+          - image-reflector-controller
+          - image-automation-controller
+  podMetricsEndpoints:
+    - port: http-prom
+      interval: 60s

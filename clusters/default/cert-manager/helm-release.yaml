@@ -22,7 +22,7 @@ spec:
         kind: HelmRepository
         name: jetstack
       interval: 12h
-      version: "^1.21.0"
+      version: "1.21.2"
   install:
     timeout: 15m
     remediation:
@@ -34,6 +34,10 @@ spec:
     crds:
       enabled: true
       keep: true
+    prometheus:
+      enabled: true
+      servicemonitor:
+        enabled: true
     resources:
       requests:
         cpu: 25m

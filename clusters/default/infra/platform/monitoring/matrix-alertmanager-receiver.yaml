@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mar-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: matrix-alertmanager-receiver
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+data:
+  config.yaml: |
+    http:
+      port: 12345
+      metrics-enabled: true
+    matrix:
+      homeserver-url: http://conduit.matrix-conduit.svc.cluster.local:6167
+      user-id: "@alerts:conduit.kudofools.dev"
+      access-token: ${MATRIX_ACCESS_TOKEN}
+      room-mapping:
+        alerts: "!YHUMLDOI_KcSD-2Nk-SOMbbvt0pTK1iVXPUokQpZfJs"
+    templating:
+      firing-template: 'FIRING: {{ .Alert.Labels.alertname }}{{ if .Alert.Labels.severity }} [{{ .Alert.Labels.severity }}]{{ end }}{{ if .Alert.Annotations.summary }} — {{ .Alert.Annotations.summary }}{{ end }}{{ if .Alert.Labels.namespace }} (ns: {{ .Alert.Labels.namespace }}){{ end }}'
+      resolved-template: 'RESOLVED: {{ .Alert.Labels.alertname }}{{ if .Alert.Annotations.summary }} — {{ .Alert.Annotations.summary }}{{ end }}'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix-alertmanager-receiver
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: matrix-alertmanager-receiver
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: matrix-alertmanager-receiver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: matrix-alertmanager-receiver
+        app.kubernetes.io/part-of: kudofools
+        app.kubernetes.io/managed-by: flux
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: receiver
+          image: metio/matrix-alertmanager-receiver:2026.9.9
+          args:
+            - --config-path=/etc/matrix-alertmanager-receiver/config.yaml
+          env:
+            - name: MATRIX_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mar-secrets
+                  key: MATRIX_ACCESS_TOKEN
+          ports:
+            - containerPort: 12345
+              name: http
+          readinessProbe:
+            tcpSocket:
+              port: 12345
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 12345
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/matrix-alertmanager-receiver
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: mar-config
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrix-alertmanager-receiver
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: matrix-alertmanager-receiver
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  selector:
+    app.kubernetes.io/name: matrix-alertmanager-receiver
+  ports:
+    - name: http
+      port: 12345
+      targetPort: 12345

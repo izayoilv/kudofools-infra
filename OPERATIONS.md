@@ -270,6 +270,51 @@ The arm64 `rathole-client` image is built by Woodpecker (`.woodpecker/rathole.ym
 
 To bump the rathole version: change `RATHOLE_VERSION` in `rathole/Dockerfile`, the image tag in `.woodpecker/rathole.yml`, and the image reference in `clusters/default/infra/apps/rathole/deployment.yaml`.
 
+## Monitoring stack
+
+Check components and targets:
+
+```bash
+flux get helmreleases -A
+kubectl get pods -n monitoring
+kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
+# then: http://localhost:9090/targets — every target should be up
+```
+
+Grafana is mesh-only: `https://grafana.kudofools.dev` (NetBird peers), or fall back to
+`kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80`.
+
+### Rotate Grafana admin password
+
+```bash
+ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/grafana/secrets admin-password="$(openssl rand -base64 32)"
+kubectl annotate externalsecret -n monitoring grafana-secrets force-sync=$(date +%s) --overwrite
+kubectl rollout restart deploy -n monitoring kube-prometheus-stack-grafana
+```
+
+### Rotate the Matrix bot access token
+
+Re-login the bot (see docs/matrix.md), patch `kv/matrix-alertmanager-receiver/secrets`,
+force-sync `mar-secrets`, restart `deploy/matrix-alertmanager-receiver`.
+
+### Retention and disk
+
+- Prometheus: 15d / 8GB cap on a 10Gi PVC.
+- Loki: 14d retention on a 10Gi PVC (compactor).
+- If the node gets tight: lower retention first, then scrape intervals:
+  `kubectl edit helmrelease -n flux-system kube-prometheus-stack`.
+
+### Test an alert
+
+```bash
+kubectl -n monitoring exec alertmanager-kube-prometheus-stack-alertmanager-0 -c alertmanager -- \
+  amtool --alertmanager.url=http://localhost:9093 alert add testalert severity=warning \
+  --annotation=summary="test alert from OPERATIONS.md"
+```
+
+The message must arrive in the Matrix alerts room; the alert expires on its own.
+
 ## Drift Recovery
 
 If tofu-controller reports drift:

@@ -54,7 +54,7 @@ OpenBao is deployed by Flux but starts sealed. SSH into the node:
 
 ```bash
 # Install CLI
-curl -sL https://github.com/openbao/openbao/releases/download/v2.5.5/bao-hsm_2.5.5_Linux_arm64.tar.gz -o /tmp/bao.tar.gz
+curl -sL https://github.com/openbao/openbao/releases/download/v2.6.2/openbao-hsm_2.6.2_linux_arm64.tar.gz -o /tmp/bao.tar.gz
 tar xzf /tmp/bao.tar.gz -C /tmp
 sudo install /tmp/bao /usr/local/bin/bao
 
@@ -236,6 +236,31 @@ To update non-secret config, edit `forgejo-config.yaml`, push, and Flux syncs. R
 kubectl rollout restart deployment -n forgejo forgejo
 ```
 
+## Monitoring & logging stack
+
+The observability stack runs in the `monitoring` namespace: kube-prometheus-stack
+(Prometheus, Alertmanager, Grafana, node-exporter, kube-state-metrics), Loki, an
+OpenTelemetry Collector DaemonSet, and a Matrix alert bridge.
+
+1. Create the alerts bot on Conduit and get its access token + room ID (see
+   [docs/matrix.md](./docs/matrix.md)).
+2. Seed the secrets (see [docs/openbao.md](./docs/openbao.md)):
+   `kv/grafana/secrets` (`admin-user`, `admin-password`) and
+   `kv/matrix-alertmanager-receiver/secrets` (`MATRIX_ACCESS_TOKEN`).
+3. Put the room ID into `mar-config` in
+   `clusters/default/infra/platform/monitoring/matrix-alertmanager-receiver.yaml`.
+4. Add the NetBird dashboard DNS override: `grafana.kudofools.dev` →
+   `10.43.92.135` (Traefik ClusterIP). There is no Cloudflare tunnel route for
+   Grafana; it is mesh-only like `openbao`/`vaultwarden`.
+5. Push to main, then force ESO to sync:
+
+   ```bash
+   kubectl annotate externalsecret -n monitoring grafana-secrets force-sync=$(date +%s) --overwrite
+   kubectl annotate externalsecret -n monitoring mar-secrets force-sync=$(date +%s) --overwrite
+   ```
+
+6. Log in at `https://grafana.kudofools.dev` (`admin` / the seeded password).
+
 ## Pushing images to zot
 
 The zot registry is public at `registry.kudofools.dev` (via the VPS relay) and internal at `zot.zot.svc:5000`. `public/*` images are pullable anonymously; pushes always require auth (LDAP users from LLDAP).
@@ -257,7 +282,7 @@ Builds run in the `woodpecker-pipelines` namespace and push via buildkitd to the
 ```yaml
 steps:
   build-and-push:
-    image: moby/buildkit:v0.31.2
+    image: moby/buildkit:v0.33.0
     environment:
       REGISTRY_PASSWORD:
         from_secret: registry_password

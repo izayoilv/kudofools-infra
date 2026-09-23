@@ -102,3 +102,24 @@ spec:
         cpu: "3"
         memory: 3Gi
       type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: monitoring-limits
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  limits:
+    - default:
+        cpu: "100m"
+        memory: 128Mi
+      defaultRequest:
+        cpu: "50m"
+        memory: 64Mi
+      max:
+        cpu: "1"
+        memory: 1Gi
+      type: Container
