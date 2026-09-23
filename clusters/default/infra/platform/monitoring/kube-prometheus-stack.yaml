@@ -131,12 +131,19 @@ spec:
           cpu: 500m
           memory: 512Mi
       livenessProbe:
-        initialDelaySeconds: 180
+        initialDelaySeconds: 600
         timeoutSeconds: 30
         failureThreshold: 10
       readinessProbe:
         initialDelaySeconds: 30
         timeoutSeconds: 30
+      grafana.ini:
+        plugins:
+          preinstall_disabled: true
+        analytics:
+          check_for_updates: false
+          check_for_plugin_updates: false
+          reporting_enabled: false
       sidecar:
         datasources:
           enabled: false
