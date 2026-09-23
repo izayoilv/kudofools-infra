@@ -86,7 +86,7 @@ spec:
               cpu: "500m"
             requests:
               memory: 128Mi
-              cpu: "100m"
+              cpu: "25m"
           volumeMounts:
             - name: data
               mountPath: /var/lib/woodpecker
