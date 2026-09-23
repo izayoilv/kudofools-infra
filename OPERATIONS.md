@@ -277,12 +277,12 @@ Check components and targets:
 ```bash
 flux get helmreleases -A
 kubectl get pods -n monitoring
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090
 # then: http://localhost:9090/targets — every target should be up
 ```
 
 Grafana is mesh-only: `https://grafana.kudofools.dev` (NetBird peers), or fall back to
-`kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80`.
+`kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-stack-grafana 3000:80`.
 
 ### Rotate Grafana admin password
 
@@ -290,7 +290,7 @@ Grafana is mesh-only: `https://grafana.kudofools.dev` (NetBird peers), or fall b
 ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/grafana/secrets admin-password="$(openssl rand -base64 32)"
 kubectl annotate externalsecret -n monitoring grafana-secrets force-sync=$(date +%s) --overwrite
-kubectl rollout restart deploy -n monitoring kube-prometheus-stack-grafana
+kubectl rollout restart deploy -n monitoring monitoring-kube-prometheus-stack-grafana
 ```
 
 ### Rotate the Matrix bot access token
@@ -308,7 +308,7 @@ force-sync `mar-secrets`, restart `deploy/matrix-alertmanager-receiver`.
 ### Test an alert
 
 ```bash
-kubectl -n monitoring exec alertmanager-kube-prometheus-stack-alertmanager-0 -c alertmanager -- \
+kubectl -n monitoring exec alertmanager-monitoring-kube-prometheus-alertmanager-0 -c alertmanager -- \
   amtool --alertmanager.url=http://localhost:9093 alert add testalert severity=warning \
   --annotation=summary="test alert from OPERATIONS.md"
 ```
