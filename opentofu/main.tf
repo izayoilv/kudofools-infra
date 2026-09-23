@@ -1,14 +1,14 @@
 terraform {
-  required_version = ">=1.12.4"
+  required_version = ">=1.12.6"
 
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 5.22.0"
+      version = "~> 5.25.0"
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 5.10.1"
+      version = "~> 5.12.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -16,7 +16,7 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.9.0"
+      version = "~> 3.9.1"
     }
   }
 }

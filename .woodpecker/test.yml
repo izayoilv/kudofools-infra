@@ -2,12 +2,12 @@ when:
   event: [push, manual]
 
 variables:
-  - &buildkit "moby/buildkit:v0.31.2"
-  - &alpine "alpine:3.24"
+  - &buildkit "moby/buildkit:v0.33.0"
+  - &alpine "alpine:3.24.2"
 
 clone:
   git:
-    image: woodpeckerci/plugin-git
+    image: woodpeckerci/plugin-git:2.10.1
     settings:
       depth: 1
       lfs: false
@@ -28,7 +28,7 @@ steps:
       - mkdir -p ~/.docker
       - echo "{\"auths\":{\"zot.zot.svc:5000\":{\"username\":\"izayoilv\",\"password\":\"$${REGISTRY_PASSWORD}\"}}}" > ~/.docker/config.json
       - mkdir -p /tmp/build
-      - echo 'FROM alpine:3.24.1' > /tmp/build/Dockerfile
+      - echo 'FROM alpine:3.24.2' > /tmp/build/Dockerfile
       - echo 'CMD ["echo", "hello-from-woodpecker"]' >> /tmp/build/Dockerfile
       - |
         echo "waiting for buildkitd..."

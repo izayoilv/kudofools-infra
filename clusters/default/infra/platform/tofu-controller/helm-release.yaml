@@ -23,7 +23,7 @@ spec:
         kind: HelmRepository
         name: tofu-controller
       interval: 12h
-      version: "^0.16.4"
+      version: "0.16.5"
   install:
     crds: CreateReplace
     remediation:

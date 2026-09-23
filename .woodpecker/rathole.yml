@@ -8,11 +8,11 @@ when:
   - event: manual
 
 variables:
-  - &buildkit "moby/buildkit:v0.31.2"
+  - &buildkit "moby/buildkit:v0.33.0"
 
 clone:
   git:
-    image: woodpeckerci/plugin-git
+    image: woodpeckerci/plugin-git:2.10.1
     settings:
       depth: 1
       lfs: false

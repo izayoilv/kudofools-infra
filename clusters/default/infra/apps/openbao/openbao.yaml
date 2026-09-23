@@ -29,7 +29,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: openbao
-          image: openbao/openbao:2.5.5
+          image: openbao/openbao:2.6.2
           args:
             - server
             - -config

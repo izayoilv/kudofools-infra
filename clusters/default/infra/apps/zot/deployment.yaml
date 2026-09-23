@@ -28,7 +28,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: zot
-          image: ghcr.io/project-zot/zot:v2.1.20
+          image: ghcr.io/project-zot/zot:v2.1.21
           args:
             - serve
             - /etc/zot/config.json

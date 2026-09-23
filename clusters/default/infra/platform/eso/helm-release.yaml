@@ -21,6 +21,7 @@ spec:
         kind: HelmRepository
         name: external-secrets
       interval: 12h
+      version: "2.11.0"
   install:
     crds: CreateReplace
   upgrade:
