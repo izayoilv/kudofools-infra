@@ -45,6 +45,19 @@ spec:
       enabled: false
     kubeProxy:
       enabled: false
+    kubeApiServer:
+      serviceMonitor:
+        metricRelabelings:
+          # kps default: drop excessively noisy apiserver latency buckets
+          - action: drop
+            regex: (etcd_request|apiserver_request_slo|apiserver_request_sli|apiserver_request)_duration_seconds_bucket;(0\.15|0\.2|0\.3|0\.35|0\.4|0\.45|0\.6|0\.7|0\.8|0\.9|1\.25|1\.5|1\.75|2|3|3\.5|4|4\.5|6|7|8|9|15|20|40|45|50)(\.0)?
+            sourceLabels:
+              - __name__
+              - le
+          # k3s/pi: drop families unused by the bundled dashboards and alerts
+          - action: drop
+            regex: apiserver_watch_.*|apiserver_request_body_size_bytes_bucket|apiserver_response_sizes_bucket|etcd_request_.*
+            sourceLabels: [__name__]
     defaultRules:
       rules:
         etcd: false
@@ -66,7 +79,7 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 384Mi
+            memory: 512Mi
           limits:
             cpu: 500m
             memory: 1Gi
@@ -89,6 +102,10 @@ spec:
           routes:
             - receiver: "null"
               matchers: ['alertname="Watchdog"']
+        inhibit_rules:
+          - source_matchers: ['severity="critical"']
+            target_matchers: ['severity="warning"']
+            equal: [alertname, namespace]
         receivers:
           - name: "null"
           - name: matrix
@@ -169,6 +186,84 @@ spec:
           cpu: 100m
           memory: 128Mi
     kube-state-metrics:
+      customResourceState:
+        enabled: true
+        config:
+          kind: CustomResourceStateMetrics
+          spec:
+            resources:
+              - groupVersionKind:
+                  group: kustomize.toolkit.fluxcd.io
+                  version: v1
+                  kind: Kustomization
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+              - groupVersionKind:
+                  group: helm.toolkit.fluxcd.io
+                  version: v2
+                  kind: HelmRelease
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: GitRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: OCIRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+      rbac:
+        extraRules:
+          - apiGroups:
+              - kustomize.toolkit.fluxcd.io
+              - helm.toolkit.fluxcd.io
+              - source.toolkit.fluxcd.io
+            resources:
+              - kustomizations
+              - helmreleases
+              - gitrepositories
+              - ocirepositories
+            verbs: [list, watch]
       resources:
         requests:
           cpu: 10m

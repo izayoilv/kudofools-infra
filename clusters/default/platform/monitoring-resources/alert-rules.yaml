@@ -21,12 +21,12 @@ spec:
     - name: kudofools.flux
       rules:
         - alert: FluxResourceNotReady
-          expr: gotk_reconcile_condition{type="Ready",status="False"} == 1
+          expr: gotk_resource_info{ready="False"} == 1
           for: 15m
           labels:
             severity: warning
           annotations:
-            summary: "Flux {{ $labels.kind }} {{ $labels.name }} is not ready"
+            summary: "Flux {{ $labels.customresource_kind }} {{ $labels.name }} is not ready"
             description: "The resource has been failing reconciliation for 15 minutes."
     - name: kudofools.certmanager
       rules:
@@ -38,3 +38,13 @@ spec:
           annotations:
             summary: "Certificate {{ $labels.name }} expires in less than 14 days"
             description: "Certificate in namespace {{ $labels.namespace }} expires at {{ $value | humanizeTimestamp }}."
+    - name: kudofools.targets
+      rules:
+        - alert: ScrapeTargetDown
+          expr: up == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scrape target {{ $labels.job }} {{ $labels.instance }} is down"
+            description: "Prometheus has failed to scrape this target for 10 minutes."

@@ -43,12 +43,20 @@ spec:
       logsCollection:
         enabled: true
         includeCollectorLogs: false
-        storeCheckpoints: false
+        storeCheckpoints: true
       kubernetesAttributes:
         enabled: true
     clusterRole:
       create: true
     config:
+      receivers:
+        prometheus:
+          config:
+            scrape_configs:
+              - job_name: opentelemetry-collector
+                scrape_interval: 60s
+                static_configs:
+                  - targets: ["${env:MY_POD_IP}:8888"]
       exporters:
         otlp_http/loki:
           endpoint: http://monitoring-loki.monitoring.svc.cluster.local:3100/otlp
