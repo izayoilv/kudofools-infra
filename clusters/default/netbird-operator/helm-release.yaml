@@ -18,6 +18,8 @@ spec:
       retries: 3
   values:
     managementURL: https://netbird.kudofools.dev
+    webhook:
+      failurePolicy: Ignore
     resources:
       requests:
         cpu: 25m
