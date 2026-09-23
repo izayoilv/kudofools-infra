@@ -266,8 +266,8 @@ spec:
             verbs: [list, watch]
       resources:
         requests:
-          cpu: 10m
-          memory: 32Mi
+          cpu: 25m
+          memory: 64Mi
         limits:
-          cpu: 100m
-          memory: 128Mi
+          cpu: 500m
+          memory: 256Mi
