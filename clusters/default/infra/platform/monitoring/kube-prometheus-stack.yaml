@@ -65,7 +65,7 @@ spec:
         ruleSelectorNilUsesHelmValues: false
         resources:
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 384Mi
           limits:
             cpu: 500m
@@ -126,14 +126,29 @@ spec:
       resources:
         requests:
           cpu: 25m
-          memory: 128Mi
+          memory: 192Mi
         limits:
-          cpu: 200m
-          memory: 384Mi
+          cpu: 500m
+          memory: 512Mi
+      livenessProbe:
+        initialDelaySeconds: 180
+        timeoutSeconds: 30
+        failureThreshold: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        timeoutSeconds: 30
+      sidecar:
+        datasources:
+          enabled: false
+        dashboards:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
     prometheusOperator:
       resources:
         requests:
-          cpu: 25m
+          cpu: 10m
           memory: 32Mi
         limits:
           cpu: 200m
