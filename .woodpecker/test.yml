@@ -49,6 +49,6 @@ steps:
       - apk add --no-cache curl
       - AUTH="izayoilv:$${REGISTRY_PASSWORD}"
       - |
-        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "$AUTH" "http://zot.zot.svc:5000/v2/public/test-hello/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
+        STATUS=$(curl -sS --connect-timeout 5 --max-time 30 --retry 5 --retry-connrefused --retry-delay 2 -o /dev/null -w "%{http_code}" -u "$AUTH" "http://zot.zot.svc:5000/v2/public/test-hello/manifests/latest" -H "Accept: application/vnd.oci.image.manifest.v1+json")
         echo "HTTP status = $STATUS"
         if [ "$STATUS" = "200" ]; then echo "OK"; else echo "FAIL: $STATUS"; exit 1; fi
