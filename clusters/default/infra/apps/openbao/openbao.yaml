@@ -53,12 +53,16 @@ spec:
               port: 8200
             initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /v1/sys/health?standbyok=true
               port: 8200
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
           resources:
             limits:
               cpu: 500m
