@@ -125,11 +125,11 @@ spec:
           access: proxy
       resources:
         requests:
-          cpu: 25m
-          memory: 192Mi
+          cpu: 50m
+          memory: 256Mi
         limits:
           cpu: 500m
-          memory: 512Mi
+          memory: 1Gi
       livenessProbe:
         initialDelaySeconds: 600
         timeoutSeconds: 30
