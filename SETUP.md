@@ -238,9 +238,9 @@ kubectl rollout restart deployment -n forgejo forgejo
 
 ## Monitoring & logging stack
 
-The observability stack runs in the `monitoring` namespace: kube-prometheus-stack
-(Prometheus, Alertmanager, Grafana, node-exporter, kube-state-metrics), Loki, an
-OpenTelemetry Collector DaemonSet, and a Matrix alert bridge.
+The observability stack runs in the `monitoring` namespace: the VictoriaMetrics
+stack (VMSingle, VMAgent, VMAlert, VMAlertmanager, Grafana, node-exporter,
+kube-state-metrics), VictoriaLogs with a vlagent DaemonSet, and a Matrix alert bridge.
 
 1. Create the alerts bot on Conduit and get its access token + room ID (see
    [docs/matrix.md](./docs/matrix.md)).

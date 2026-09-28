@@ -38,11 +38,13 @@ flowchart TB
         end
 
         subgraph OBS["Observability"]
-            OTEL["OTel Collector"]
-            LOKI[("Loki")]
-            PROM[("Prometheus")]
+            AGENT["VMAgent"]
+            SINGLE[("VMSingle")]
+            LAGENT["vlagent"]
+            LOGS[("VictoriaLogs")]
             GRAF["Grafana"]
-            AM["Alertmanager"]
+            RULER["VMAlert"]
+            AM["VMAlertmanager"]
             MAR["Matrix alerts bridge"]
         end
     end
@@ -66,12 +68,13 @@ flowchart TB
     TR -->|mesh-only UI| SEC
     TR -->|mesh-only UI| OBS
 
-    OTEL -->|logs| LOKI
-    OTEL -->|metrics| PROM
-    PROM -.->|scrapes| APPS
-    PROM --> GRAF
-    LOKI --> GRAF
-    PROM -->|alerts| AM
+    AGENT -.->|scrapes| APPS
+    AGENT --> SINGLE
+    LAGENT -->|logs| LOGS
+    SINGLE --> GRAF
+    LOGS --> GRAF
+    SINGLE --> RULER
+    RULER -->|alerts| AM
     AM -->|webhook| MAR
     MAR -->|Matrix API| MX
 
@@ -90,8 +93,8 @@ flowchart TB
     class OB,ESO secret
     class TLS,TR platform
     class FJ,WP,ZOT,LL,MX,VW,RC app
-    class OTEL,GRAF,AM,MAR obs
-    class LOKI,PROM store
+    class AGENT,LAGENT,GRAF,RULER,AM,MAR obs
+    class SINGLE,LOGS store
 ```
 
 ## Prerequisites
@@ -108,7 +111,7 @@ clusters/default/
 ├── kudofools-infra.yaml     # Kustomization: syncs infra/
 ├── kudofools-eso.yaml       # Kustomization: syncs eso-resources/
 ├── kudofools-opentofu.yaml  # Kustomization: syncs opentofu/ Terraform CRD
-├── kudofools-monitoring.yaml# Kustomization: syncs monitoring CRs (PodMonitor, alert rules)
+├── kudofools-monitoring.yaml# Kustomization: syncs monitoring CRs (VMRule, VMPodScrape)
 ├── intikepri-*.yaml         # intikepri-related Flux resources
 ├── infra/                   # Applied by infra
 │   ├── system/              # Namespaces, LimitRanges, NetworkPolicies, PVCs
@@ -117,7 +120,7 @@ clusters/default/
 │   │   ├── eso/             # External Secrets HelmRelease
 │   │   ├── tofu-controller/ # tofu-controller HelmRelease
 │   │   ├── image-automation/# Flux image automation controllers
-│   │   ├── monitoring/      # Prometheus, Loki, Grafana, OTel Collector, Matrix alerts
+│   │   ├── monitoring/      # VictoriaMetrics + VictoriaLogs, Grafana, Matrix alerts
 │   │   └── cloudflared/     # Cloudflare Tunnel deployment (config managed by OpenTofu)
 │   └── apps/
 │       ├── openbao/         # Secrets engine (Vault-compatible)
@@ -142,3 +145,4 @@ opentofu/                    # OpenTofu IaC (applied by tofu-controller)
 - [Operations](./OPERATIONS.md) — maintenance tasks
 - [Matrix (Conduit) operations](./docs/matrix.md) — admin room, password recovery, alerts bot
 - [OpenBao seeds guide](./docs/openbao.md) — secret paths, seed commands, rotation pointers
+- [Monitoring & logging](./docs/monitoring.md) — VictoriaMetrics stack, VictoriaLogs, alerting

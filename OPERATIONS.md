@@ -277,12 +277,16 @@ Check components and targets:
 ```bash
 flux get helmreleases -A
 kubectl get pods -n monitoring
-kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090
-# then: http://localhost:9090/targets — every target should be up
+# scrape targets (VMAgent)
+kubectl port-forward -n monitoring svc/vmagent-monitoring-vm-victoria-metrics-k8s-stack 8429:8429
+# then: http://localhost:8429/targets — every target should be up
+# queries + vmui (VMSingle)
+kubectl port-forward -n monitoring svc/monitoring-vm-victoria-metrics-single-server 8428:8428
+# then: http://localhost:8428/vmui
 ```
 
 Grafana is mesh-only: `https://grafana.kudofools.dev` (NetBird peers), or fall back to
-`kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-stack-grafana 3000:80`.
+`kubectl port-forward -n monitoring svc/monitoring-vm-grafana 3000:80`.
 
 ### Rotate Grafana admin password
 
@@ -290,7 +294,7 @@ Grafana is mesh-only: `https://grafana.kudofools.dev` (NetBird peers), or fall b
 ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
 kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv patch kv/grafana/secrets admin-password="$(openssl rand -base64 32)"
 kubectl annotate externalsecret -n monitoring grafana-secrets force-sync=$(date +%s) --overwrite
-kubectl rollout restart deploy -n monitoring monitoring-kube-prometheus-stack-grafana
+kubectl rollout restart deploy -n monitoring monitoring-vm-grafana
 ```
 
 ### Rotate the Matrix bot access token
@@ -300,15 +304,16 @@ force-sync `mar-secrets`, restart `deploy/matrix-alertmanager-receiver`.
 
 ### Retention and disk
 
-- Prometheus: 15d / 8GB cap on a 10Gi PVC.
-- Loki: 14d retention on a 10Gi PVC (compactor).
-- If the node gets tight: lower retention first, then scrape intervals:
-  `kubectl edit helmrelease -n flux-system kube-prometheus-stack`.
+- VMSingle (metrics): 90d retention on a 10Gi PVC — `vmsingle.spec.retentionPeriod`
+  in `helmrelease/victoria-metrics`.
+- VictoriaLogs: 30d retention on a 10Gi PVC (80% disk guard) — `server.retentionPeriod`
+  in `helmrelease/victoria-logs`.
+- If the node gets tight: lower retention first, then the VMAgent scrape interval.
 
 ### Test an alert
 
 ```bash
-kubectl -n monitoring exec alertmanager-monitoring-kube-prometheus-alertmanager-0 -c alertmanager -- \
+kubectl -n monitoring exec vmalertmanager-monitoring-vm-0 -c alertmanager -- \
   amtool --alertmanager.url=http://localhost:9093 alert add testalert severity=warning \
   --annotation=summary="test alert from OPERATIONS.md"
 ```
