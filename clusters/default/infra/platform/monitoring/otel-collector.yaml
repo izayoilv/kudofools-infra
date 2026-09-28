@@ -13,6 +13,7 @@ metadata:
   name: opentelemetry-collector
   namespace: flux-system
 spec:
+  suspend: true
   interval: 30m
   releaseName: monitoring-opentelemetry-collector
   targetNamespace: monitoring
