@@ -64,6 +64,10 @@ spec:
       spec:
         selectAllByDefault: true
         scrapeInterval: 30s
+        serviceScrapeRelabelTemplate:
+          - action: drop
+            sourceLabels: [__meta_kubernetes_pod_container_port_number]
+            regex: "8435"
         resources:
           requests:
             cpu: 25m
