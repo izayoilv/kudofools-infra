@@ -1,0 +1,44 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vlagent
+  namespace: flux-system
+spec:
+  interval: 30m
+  releaseName: monitoring-vlagent
+  targetNamespace: monitoring
+  chart:
+    spec:
+      chart: victoria-logs-collector
+      sourceRef:
+        kind: HelmRepository
+        name: victoria-metrics
+      interval: 12h
+      version: "0.3.7"
+  install:
+    timeout: 10m
+    remediation:
+      retries: 3
+  upgrade:
+    timeout: 10m
+    remediation:
+      retries: 3
+  values:
+    remoteWrite:
+      - url: http://monitoring-vl-victoria-logs-single-server.monitoring.svc.cluster.local:9428
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 192Mi
+    extraVolumes:
+      - name: vlagent-data
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: vlagent-data
+        mountPath: /var/lib/vl-collector
+    podMonitor:
+      enabled: true
+      vm: true

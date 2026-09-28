@@ -6,3 +6,5 @@ resources:
   - networkpolicy.yaml
   - victoria-metrics.yaml
   - vmalertmanager.yaml
+  - victoria-logs.yaml
+  - vlagent.yaml
