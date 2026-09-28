@@ -33,12 +33,9 @@ spec:
       limits:
         cpu: 200m
         memory: 192Mi
-    extraVolumes:
-      - name: vlagent-data
+    persistence:
+      volume:
         emptyDir: {}
-    extraVolumeMounts:
-      - name: vlagent-data
-        mountPath: /var/lib/vl-collector
     podMonitor:
       enabled: true
       vm: true
