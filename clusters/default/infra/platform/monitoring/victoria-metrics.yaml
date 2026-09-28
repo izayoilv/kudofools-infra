@@ -126,6 +126,11 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
+    # The chart's built-in VMAlertmanager name exceeds the 63-char k8s label
+    # limit at this release name (StatefulSet can never create its pod); the
+    # standalone VMAlertmanager CR (vmalertmanager.yaml) is used instead.
+    alertmanager:
+      enabled: false
     defaultDatasources:
       extra:
         - name: VictoriaLogs
