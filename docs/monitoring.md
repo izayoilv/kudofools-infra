@@ -13,7 +13,7 @@ VictoriaMetrics stack on the rpi5 k3s cluster, managed by Flux from this repo.
 | VMAlertmanager | `VMAlertmanager/monitoring-vm` | — | 1Gi PVC, routes to `matrix-alertmanager-receiver`, inhibits critical→warning |
 | VictoriaLogs | HelmRelease `victoria-logs` (release `monitoring-vl`) | chart `0.13.9`, `v1.52.0` | PVC 10Gi, retention **30d**, 80% disk guard, LogsQL on `:9428` |
 | vlagent | HelmRelease `vlagent` (release `monitoring-vlagent`) | chart `0.3.7` | DaemonSet, collects all container logs with Kubernetes metadata |
-| Grafana | `monitoring-vm-grafana` | `13.1.1` | mesh-only at `grafana.kudofools.dev`; data sources: VictoriaMetrics (default), VictoriaLogs |
+| Grafana | `monitoring-vm-grafana` | `13.1.1` | mesh-only at `grafana.kudofools.dev`; data sources: VictoriaMetrics (default), VictoriaLogs, Alertmanager (silences/status) |
 
 Alert rules live in `clusters/default/platform/monitoring-resources/vmrules.yaml`
 (`kudofools.rpi`, `kudofools.flux`, `kudofools.certmanager`, `kudofools.targets`)
