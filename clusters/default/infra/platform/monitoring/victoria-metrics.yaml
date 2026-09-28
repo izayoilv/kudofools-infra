@@ -141,6 +141,13 @@ spec:
           type: victoriametrics-logs-datasource
           url: http://monitoring-vl-victoria-logs-single-server.monitoring.svc.cluster.local:9428
           access: proxy
+        - name: Alertmanager
+          type: alertmanager
+          access: proxy
+          uid: Alertmanager
+          url: http://vmalertmanager-monitoring-vm.monitoring.svc.cluster.local:9093
+          jsonData:
+            implementation: prometheus
     kube-state-metrics:
       customResourceState:
         enabled: true
