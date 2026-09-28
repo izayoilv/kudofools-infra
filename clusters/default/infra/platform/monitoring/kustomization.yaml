@@ -7,3 +7,4 @@ resources:
   - matrix-alertmanager-receiver.yaml
   - ingress.yaml
   - networkpolicy.yaml
+  - victoria-metrics.yaml

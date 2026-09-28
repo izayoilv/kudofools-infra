@@ -1,0 +1,240 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: victoria-metrics
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://victoriametrics.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-metrics
+  namespace: flux-system
+spec:
+  interval: 30m
+  releaseName: monitoring-vm
+  targetNamespace: monitoring
+  chart:
+    spec:
+      chart: victoria-metrics-k8s-stack
+      sourceRef:
+        kind: HelmRepository
+        name: victoria-metrics
+      interval: 12h
+      version: "0.93.0"
+  install:
+    timeout: 15m
+    remediation:
+      retries: 3
+  upgrade:
+    timeout: 15m
+    remediation:
+      retries: 3
+  values:
+    victoria-metrics-operator:
+      enabled: true
+      crds:
+        plain: true
+      operator:
+        disable_prometheus_converter: true
+    vmsingle:
+      enabled: true
+      spec:
+        retentionPeriod: "90d"
+        removePvcAfterDelete: true
+        storage:
+          storageClassName: local-path
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 10Gi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+    vmagent:
+      enabled: true
+      spec:
+        selectAllByDefault: true
+        scrapeInterval: 30s
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 192Mi
+    vmalert:
+      enabled: true
+      spec:
+        selectAllByDefault: true
+        evaluationInterval: 30s
+        notifier:
+          url: http://vmalertmanager-monitoring-vm.monitoring.svc.cluster.local:9093
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+    grafana:
+      enabled: true
+      ingress:
+        enabled: false
+      admin:
+        existingSecret: grafana-secrets
+      persistence:
+        enabled: true
+        storageClassName: local-path
+        size: 1Gi
+      plugins:
+        - victoriametrics-logs-datasource
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+      livenessProbe:
+        initialDelaySeconds: 600
+        timeoutSeconds: 30
+        failureThreshold: 10
+      readinessProbe:
+        initialDelaySeconds: 30
+        timeoutSeconds: 30
+      grafana.ini:
+        plugins:
+          disable_plugins: "grafana-lokiexplore-app,grafana-pyroscope-app,grafana-exploretraces-app,grafana-metricsdrilldown-app,elasticsearch,zipkin"
+        analytics:
+          check_for_updates: false
+          check_for_plugin_updates: false
+          reporting_enabled: false
+      sidecar:
+        datasources:
+          enabled: true
+        dashboards:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+    defaultDatasources:
+      extra:
+        - name: VictoriaLogs
+          type: victoriametrics-logs-datasource
+          url: http://monitoring-vl-victoria-logs-single-server.monitoring.svc.cluster.local:9428
+          access: proxy
+    kube-state-metrics:
+      customResourceState:
+        enabled: true
+        config:
+          kind: CustomResourceStateMetrics
+          spec:
+            resources:
+              - groupVersionKind:
+                  group: kustomize.toolkit.fluxcd.io
+                  version: v1
+                  kind: Kustomization
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+              - groupVersionKind:
+                  group: helm.toolkit.fluxcd.io
+                  version: v2
+                  kind: HelmRelease
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: GitRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: OCIRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: "The current state of a Flux resource."
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                          exported_namespace: [metadata, namespace]
+                          ready: [status, conditions, "[type=Ready]", status]
+      rbac:
+        extraRules:
+          - apiGroups:
+              - kustomize.toolkit.fluxcd.io
+              - helm.toolkit.fluxcd.io
+              - source.toolkit.fluxcd.io
+            resources:
+              - kustomizations
+              - helmreleases
+              - gitrepositories
+              - ocirepositories
+            verbs: [list, watch]
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi
+    prometheus-node-exporter:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    kubeEtcd:
+      enabled: false
+    kubeControllerManager:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    defaultRules:
+      enabled: true
+    defaultDashboards:
+      enabled: true
+    syncJob:
+      enabled: true
