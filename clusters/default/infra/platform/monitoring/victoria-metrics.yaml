@@ -37,13 +37,15 @@ spec:
       enabled: true
       crds:
         plain: true
+        cleanup:
+          enabled: false
       operator:
         disable_prometheus_converter: true
     vmsingle:
       enabled: true
       spec:
         retentionPeriod: "90d"
-        removePvcAfterDelete: true
+        removePvcAfterDelete: false
         storage:
           storageClassName: local-path
           accessModes: [ReadWriteOnce]
