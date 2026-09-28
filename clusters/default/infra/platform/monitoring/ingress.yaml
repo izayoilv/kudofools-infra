@@ -26,6 +26,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: monitoring-kube-prometheus-stack-grafana
+                name: monitoring-vm-grafana
                 port:
                   number: 80
