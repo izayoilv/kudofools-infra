@@ -25,6 +25,14 @@ spec:
           # serviceScrapeRelabelTemplate, which intentionally leaves these
           # three self-scrape pools empty; suppress the resulting warning.
           matchers: ['alertname="ScrapePoolHasNoTargets"', 'scrape_job=~"serviceScrape/monitoring/(vmagent|vmalert|vmalertmanager).*/1"']
+        - receiver: "null"
+          # count(up == 0) is empty by design when no targets are down, so this
+          # no-data self-alert is a false positive on a healthy cluster.
+          matchers: ['alertname="RecordingRulesNoData"', 'recording="count:up0"']
+        - receiver: "null"
+          # vmalert reschedules rule groups on wall-clock corrections; residual
+          # self-noise (~16/h) remains even after chrony, and resets are harmless.
+          matchers: ['alertname="GroupIterationReset"']
     inhibit_rules:
       - source_matchers: ['severity="critical"']
         target_matchers: ['severity="warning"']
