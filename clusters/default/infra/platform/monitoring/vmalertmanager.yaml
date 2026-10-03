@@ -20,6 +20,11 @@ spec:
       routes:
         - receiver: "null"
           matchers: ['alertname="Watchdog"']
+        - receiver: "null"
+          # vmagent drops pod port 8435 (dead config-reloader endpoints) via
+          # serviceScrapeRelabelTemplate, which intentionally leaves these
+          # three self-scrape pools empty; suppress the resulting warning.
+          matchers: ['alertname="ScrapePoolHasNoTargets"', 'scrape_job=~"serviceScrape/monitoring/(vmagent|vmalert|vmalertmanager).*/1"']
     inhibit_rules:
       - source_matchers: ['severity="critical"']
         target_matchers: ['severity="warning"']

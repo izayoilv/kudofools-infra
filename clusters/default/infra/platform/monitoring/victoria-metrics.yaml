@@ -73,7 +73,7 @@ spec:
             cpu: 25m
             memory: 64Mi
           limits:
-            cpu: 200m
+            cpu: 500m
             memory: 192Mi
     vmalert:
       enabled: true
@@ -125,11 +125,13 @@ spec:
       sidecar:
         datasources:
           enabled: true
-        dashboards:
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
     # The chart's built-in VMAlertmanager name exceeds the 63-char k8s label
     # limit at this release name (StatefulSet can never create its pod); the
     # standalone VMAlertmanager CR (vmalertmanager.yaml) is used instead.
@@ -240,7 +242,7 @@ spec:
           cpu: 10m
           memory: 32Mi
         limits:
-          cpu: 100m
+          cpu: 500m
           memory: 128Mi
     kubeEtcd:
       enabled: false
