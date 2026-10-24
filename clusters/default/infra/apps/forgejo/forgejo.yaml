@@ -74,18 +74,27 @@ spec:
             requests:
               memory: 256Mi
               cpu: "100m"
+          startupProbe:
+            httpGet:
+              path: /api/healthz
+              port: 3000
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/healthz
               port: 3000
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /api/healthz
               port: 3000
-            initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
           volumeMounts:
             - name: forgejo-storage
               mountPath: /data
