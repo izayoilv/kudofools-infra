@@ -5,8 +5,12 @@ metadata:
   namespace: buildkitd
 spec:
   schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 3600
+      backoffLimit: 1
       template:
         spec:
           containers:
@@ -19,7 +23,7 @@ spec:
                   "tcp://buildkitd-service:1234",
                   "prune",
                   "--all",
-                  "--keep-storage=4GB",
-                  "--keep-duration=168h",
+                  "--keep-storage=20GB",
+                  "--keep-duration=720h",
                 ]
           restartPolicy: OnFailure
