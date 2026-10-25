@@ -50,18 +50,22 @@ spec:
               port: 1234
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 30
           livenessProbe:
             tcpSocket:
               port: 1234
             initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 20
             timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             tcpSocket:
               port: 1234
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
           resources:
             limits:
               cpu: "2"

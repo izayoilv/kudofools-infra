@@ -581,10 +581,20 @@ spec:
               fieldPath: metadata.namespace
         image: fluxcd/image-automation-controller:v1.2.5
         imagePullPolicy: IfNotPresent
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+          periodSeconds: 5
+          timeoutSeconds: 10
+          failureThreshold: 24
         livenessProbe:
           httpGet:
             path: /healthz
             port: healthz
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 5
         name: manager
         ports:
         - containerPort: 8080
@@ -597,6 +607,9 @@ spec:
           httpGet:
             path: /readyz
             port: healthz
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
         resources:
           limits:
             cpu: 1000m

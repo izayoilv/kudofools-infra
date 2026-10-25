@@ -61,16 +61,26 @@ spec:
                 secretKeyRef:
                   name: lldap-secrets
                   key: LLDAP_KEY_SEED
+          startupProbe:
+            tcpSocket:
+              port: 3890
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
           livenessProbe:
             tcpSocket:
               port: 3890
             initialDelaySeconds: 15
-            periodSeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             tcpSocket:
               port: 3890
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
           resources:
             limits:
               cpu: "1"

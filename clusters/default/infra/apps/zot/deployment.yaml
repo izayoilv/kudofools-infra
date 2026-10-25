@@ -44,18 +44,29 @@ spec:
           ports:
             - containerPort: 5000
               name: http
+          startupProbe:
+            httpGet:
+              path: /v2/
+              port: 5000
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /v2/
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /v2/
               port: 5000
             initialDelaySeconds: 15
-            periodSeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
           resources:
             limits:
               cpu: "2"

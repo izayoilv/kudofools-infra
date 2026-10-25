@@ -64,16 +64,26 @@ spec:
           ports:
             - containerPort: 12345
               name: http
+          startupProbe:
+            tcpSocket:
+              port: 12345
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
           readinessProbe:
             tcpSocket:
               port: 12345
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             tcpSocket:
               port: 12345
             initialDelaySeconds: 15
             periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
           resources:
             requests:
               cpu: 10m
