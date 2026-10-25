@@ -62,18 +62,27 @@ spec:
           ports:
             - containerPort: 8080
               name: health
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
           livenessProbe:
             httpGet:
               path: /healthz
               port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /healthz
               port: 8080
-            initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
           volumeMounts:
             - name: tmp
               mountPath: /tmp

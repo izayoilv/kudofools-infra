@@ -68,18 +68,27 @@ spec:
                 secretKeyRef:
                   name: woodpecker-secrets
                   key: WOODPECKER_FORGEJO_SECRET
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
           livenessProbe:
             httpGet:
               path: /healthz
               port: 8000
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /healthz
               port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
           resources:
             limits:
               memory: 512Mi
