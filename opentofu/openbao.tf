@@ -37,7 +37,7 @@ resource "vault_kubernetes_auth_backend_role" "eso" {
   role_name                        = "eso"
   bound_service_account_names      = ["external-secrets"]
   bound_service_account_namespaces = ["flux-system"]
-  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name, vault_policy.element_web.name, vault_policy.lldap.name, vault_policy.zot.name, vault_policy.rathole.name, vault_policy.vaultwarden.name, vault_policy.grafana.name, vault_policy.matrix_alertmanager_receiver.name]
+  token_policies                   = [vault_policy.woodpecker.name, vault_policy.forgejo.name, vault_policy.kudofools_infra.name, vault_policy.matrix_conduit.name, vault_policy.element_web.name, vault_policy.lldap.name, vault_policy.zot.name, vault_policy.rathole.name, vault_policy.vaultwarden.name, vault_policy.grafana.name, vault_policy.matrix_alertmanager_receiver.name, vault_policy.waterstop_static.name]
   token_ttl                        = 3600
 }
 
@@ -132,6 +132,15 @@ resource "vault_policy" "ui_admin" {
   policy = <<EOT
 path "*" {
   capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+EOT
+}
+
+resource "vault_policy" "waterstop_static" {
+  name   = "waterstop-static"
+  policy = <<EOT
+path "kv/data/waterstop-static/*" {
+  capabilities = ["read"]
 }
 EOT
 }

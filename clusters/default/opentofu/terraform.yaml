@@ -19,3 +19,6 @@ spec:
         - openbao_token
         - cloudflare_zone_id
         - cloudflare_account_id
+        - waterstop_cloudflare_api_token
+        - waterstop_cloudflare_account_id
+        - waterstop_cloudflare_zone_id
