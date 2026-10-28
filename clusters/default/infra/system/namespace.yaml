@@ -66,3 +66,6 @@ metadata:
     app.kubernetes.io/part-of: waterstop
     app.kubernetes.io/managed-by: flux
     tier: application
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
