@@ -225,7 +225,7 @@ Then configure the webhook in the **waterstop-static repo → Settings → Webho
 
 Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
 
-The image receiver is not wired into zot's event sinks yet at this revision. To trigger image scans immediately, add the `waterstop-static-image` webhook path to zot's event sinks (see Image webhook below); until then the ImageRepository scans every 12h.
+The image receiver is wired into zot's event sinks, so image pushes trigger the `waterstop-static-image` Receiver immediately and the ImageRepository re-scans without waiting for the 12h interval (see Image webhook below).
 
 ### Force ESO sync
 
@@ -239,11 +239,12 @@ Image pushes to zot trigger instant image-automation scans: zot's `events` exten
 
 Generic receivers accept any POST; security is the random webhook path (no signature check, unlike the Forgejo webhooks).
 
-Current wiring (in `clusters/default/infra/apps/zot/config.json` + `clusters/default/intikepri-static-image.yaml`):
+Current wiring (in `clusters/default/infra/apps/zot/config.json` + `clusters/default/intikepri-static-image.yaml` / `clusters/default/waterstop-static-image.yaml`):
 
 | ImageRepository | Receiver | zot events sink |
 |---|---|---|
 | `intikepri-static` | `intikepri-static-image` (type `generic`) | one HTTP sink → receiver's internal webhook URL |
+| `waterstop-static` | `waterstop-static-image` (type `generic`) | one HTTP sink → `/hook/3afb0b9d3da54facac2ed522fa991ec7f56c8e1505e79c3cca0053f581b10659` |
 
 To add a new image webhook (e.g. after migrating another repo to zot):
 
