@@ -57,3 +57,12 @@ metadata:
     app.kubernetes.io/part-of: kudofools
     app.kubernetes.io/managed-by: flux
     tier: observability
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: waterstop-static
+  labels:
+    app.kubernetes.io/part-of: waterstop
+    app.kubernetes.io/managed-by: flux
+    tier: application

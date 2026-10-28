@@ -123,3 +123,24 @@ spec:
         cpu: "1"
         memory: 2Gi
       type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: waterstop-limits
+  namespace: waterstop-static
+  labels:
+    app.kubernetes.io/part-of: waterstop
+    app.kubernetes.io/managed-by: flux
+spec:
+  limits:
+    - default:
+        cpu: "500m"
+        memory: 512Mi
+      defaultRequest:
+        cpu: "100m"
+        memory: 64Mi
+      max:
+        cpu: "1"
+        memory: 1Gi
+      type: Container
