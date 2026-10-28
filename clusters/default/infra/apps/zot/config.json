@@ -83,6 +83,11 @@
           "type": "http",
           "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/b80a99c186649d3c80b0dd7b160d9ce015b148736e7a8d31b87f7b80db816b1e",
           "timeout": "5s"
+        },
+        {
+          "type": "http",
+          "address": "http://webhook-receiver.flux-system.svc.cluster.local:80/hook/3afb0b9d3da54facac2ed522fa991ec7f56c8e1505e79c3cca0053f581b10659",
+          "timeout": "5s"
         }
       ]
     }
