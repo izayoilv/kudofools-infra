@@ -144,7 +144,8 @@ opentofu/                    # OpenTofu IaC (applied by tofu-controller)
 
 Pre-commit is installed with `pre-commit install`. It installs both the
 `pre-commit` and `commit-msg` hook types; commit messages are linted against
-`@commitlint/config-conventional` via `.commitlintrc.json`.
+`@commitlint/config-conventional` via `.commitlintrc.json`. Re-run
+`pre-commit install` after pulling.
 
 ## Docs
 

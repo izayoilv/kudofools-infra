@@ -207,6 +207,9 @@ kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/wat
 # 2. Get webhook paths
 kubectl -n flux-system get receiver waterstop-static-git -o jsonpath='{.status.webhookPath}'
 kubectl -n flux-system get receiver waterstop-static-image -o jsonpath='{.status.webhookPath}'
+
+# 3. Force ESO sync
+kubectl annotate externalsecret -n flux-system waterstop-static-webhook force-sync=$(date +%s) --overwrite
 ```
 
 Then configure the webhook in the **waterstop-static repo → Settings → Webhooks → Add Webhook** (select **Forgejo**):
@@ -222,7 +225,7 @@ Then configure the webhook in the **waterstop-static repo → Settings → Webho
 
 Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
 
-The image receiver is wired into zot's events sinks (see the Image webhook section below); its `<hook>` is the `waterstop-static-image` path above.
+The image receiver is not wired into zot's event sinks yet at this revision. To trigger image scans immediately, add the `waterstop-static-image` webhook path to zot's event sinks (see Image webhook below); until then the ImageRepository scans every 12h.
 
 ### Force ESO sync
 
@@ -236,7 +239,7 @@ Image pushes to zot trigger instant image-automation scans: zot's `events` exten
 
 Generic receivers accept any POST; security is the random webhook path (no signature check, unlike the Forgejo webhooks).
 
-Current wiring (in `clusters/default/infra/apps/zot/config.yaml` + `clusters/default/intikepri-static-image.yaml`):
+Current wiring (in `clusters/default/infra/apps/zot/config.json` + `clusters/default/intikepri-static-image.yaml`):
 
 | ImageRepository | Receiver | zot events sink |
 |---|---|---|
@@ -251,7 +254,7 @@ To add a new image webhook (e.g. after migrating another repo to zot):
 # 2. Get the generated webhook path (after Flux applies the receiver)
 echo "internal: http://webhook-receiver.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system <receiver-name> -o jsonpath='{.status.webhookPath}')"
 
-# 3. Add the address to zot's events sinks (clusters/default/infra/apps/zot/config.yaml)
+# 3. Add the address to zot's events sinks (clusters/default/infra/apps/zot/config.json)
 #    and restart zot (ConfigMap is subPath-mounted):
 kubectl rollout restart deployment -n zot zot
 ```
