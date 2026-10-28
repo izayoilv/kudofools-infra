@@ -265,6 +265,8 @@ kube-state-metrics), VictoriaLogs with a vlagent DaemonSet, and a Matrix alert b
 
 The zot registry is public at `registry.kudofools.dev` (via the VPS relay) and internal at `zot.zot.svc:5000`. `public/*` images are pullable anonymously; pushes always require auth (LDAP users from LLDAP).
 
+Per-repo ACLs in `clusters/default/infra/apps/zot/config.json`: `waterstop/waterstop-static` is anonymously readable, and writable by the `waterstop` LLDAP group. CI pushes as `waterstop-bot`, which must be a member of that group.
+
 ### Via podman (anywhere with access)
 
 ```bash

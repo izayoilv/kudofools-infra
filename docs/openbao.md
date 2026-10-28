@@ -60,6 +60,7 @@ All paths are in the `kudofools` OpenBao instance unless noted.
 | `kv/matrix-conduit/secrets` | `registration_token`, `TURN_SECRET` | Conduit |
 | `kv/matrix-conduit/webhook-token` | `token` | Flux Receiver (matrix-conduit) |
 | `kv/element-web/webhook-token` | `token` | Flux Receiver (element-web) |
+| `kv/waterstop-static/webhook-token` | `token` | Flux Receiver (waterstop-static) |
 | `kv/vaultwarden/admin-token` | `admin-token` | Vaultwarden admin panel |
 | `kv/vaultwarden/webhook-token` | `token` | Flux Receiver (vaultwarden) |
 | `kv/grafana/secrets` | `admin-user`, `admin-password` | Grafana (monitoring stack) |

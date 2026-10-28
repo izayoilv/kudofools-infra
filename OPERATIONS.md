@@ -100,6 +100,7 @@ The Receiver triggers reconciliation on push, eliminating the need for frequent 
 | `flux-system` (kudofools-infra) | `kudofools-infra-webhook` | `kudofools-infra-webhook` | `kv/kudofools-infra/webhook-token` |
 | `matrix-conduit` | `matrix-conduit-webhook` | `matrix-conduit-webhook` | `kv/matrix-conduit/webhook-token` |
 | `element-web` | `element-web-webhook` | `element-web-webhook` | `kv/element-web/webhook-token` |
+| `waterstop-static` | `waterstop-static-git` / `waterstop-static-image` | `waterstop-static-webhook` | `kv/waterstop-static/webhook-token` |
 
 To set up:
 
@@ -192,6 +193,36 @@ Then configure the webhook in the **element-web repo → Settings → Webhooks �
 | Branch filter | `main` |
 
 Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
+
+### Waterstop static webhook setup
+
+Two receivers share the `waterstop-static-webhook` Secret, synced from `kv/waterstop-static/webhook-token`: `waterstop-static-git` (Forgejo push events) and `waterstop-static-image` (generic receiver for zot image pushes).
+
+```bash
+# 1. Generate token and write it to OpenBao
+WATERSTOP_TOKEN=$(openssl rand -base64 32)
+ROOT_TOKEN=$(jq -r '.root_token' ~/.bao-keys.json)
+kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/waterstop-static/webhook-token token=$WATERSTOP_TOKEN
+
+# 2. Get webhook paths
+kubectl -n flux-system get receiver waterstop-static-git -o jsonpath='{.status.webhookPath}'
+kubectl -n flux-system get receiver waterstop-static-image -o jsonpath='{.status.webhookPath}'
+```
+
+Then configure the webhook in the **waterstop-static repo → Settings → Webhooks → Add Webhook** (select **Forgejo**):
+
+| Field | Value |
+|---|---|
+| Target URL | `https://flux-webhook.kudofools.dev<hook>` |
+| HTTP Method | POST |
+| POST Content Type | `application/json` |
+| Secret | the token from `kv/waterstop-static/webhook-token` |
+| Trigger On | Push Events |
+| Branch filter | `main` |
+
+Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
+
+The image receiver is wired into zot's events sinks (see the Image webhook section below); its `<hook>` is the `waterstop-static-image` path above.
 
 ### Force ESO sync
 

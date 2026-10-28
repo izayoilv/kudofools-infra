@@ -113,6 +113,7 @@ clusters/default/
 ├── kudofools-opentofu.yaml  # Kustomization: syncs opentofu/ Terraform CRD
 ├── kudofools-monitoring.yaml# Kustomization: syncs monitoring CRs (VMRule, VMPodScrape)
 ├── intikepri-*.yaml         # intikepri-related Flux resources
+├── waterstop-*.yaml         # waterstop-related Flux resources
 ├── infra/                   # Applied by infra
 │   ├── system/              # Namespaces, LimitRanges, NetworkPolicies, PVCs
 │   ├── platform/
