@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waterstop-cloudflared
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: waterstop-cloudflared
+    app.kubernetes.io/instance: waterstop-cloudflared-prod
+    app.kubernetes.io/part-of: waterstop
+    app.kubernetes.io/managed-by: flux
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: waterstop-cloudflared
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: waterstop-cloudflared
+        app.kubernetes.io/instance: waterstop-cloudflared-prod
+        app.kubernetes.io/part-of: waterstop
+        app.kubernetes.io/managed-by: flux
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:2026.10.5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+          args:
+            - tunnel
+            - --config
+            - /etc/cloudflared/config.yaml
+            - --metrics
+            - 0.0.0.0:2000
+            - run
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudflared/config.yaml
+              subPath: config.yaml
+            - name: creds
+              mountPath: /etc/cloudflared/credentials.json
+              subPath: credentials.json
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: waterstop-cloudflared-config
+        - name: creds
+          secret:
+            secretName: waterstop-cloudflared-credentials
+        - name: tmp
+          emptyDir: {}
