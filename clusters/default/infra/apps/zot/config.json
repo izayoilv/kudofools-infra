@@ -47,6 +47,16 @@
             }
           ]
         },
+        "waterstop/waterstop-static": {
+          "anonymousPolicy": ["read"],
+          "defaultPolicy": [],
+          "policies": [
+            {
+              "groups": ["cn=waterstop,ou=groups,dc=kudofools,dc=dev"],
+              "actions": ["read", "create", "update", "delete"]
+            }
+          ]
+        },
         "**": {
           "defaultPolicy": []
         }
