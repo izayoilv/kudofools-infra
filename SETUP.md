@@ -43,8 +43,13 @@ kubectl create secret generic -n flux-system opentofu-secrets \
   --from-literal=cloudflare_api_token='<token>' \
   --from-literal=openbao_token=$ROOT_TOKEN \
   --from-literal=cloudflare_zone_id='<zone-id>' \
-  --from-literal=cloudflare_account_id='<account-id>'
+  --from-literal=cloudflare_account_id='<account-id>' \
+  --from-literal=waterstop_cloudflare_api_token='<waterstop-token>' \
+  --from-literal=waterstop_cloudflare_account_id='<waterstop-account-id>' \
+  --from-literal=waterstop_cloudflare_zone_id='<waterstop-zone-id>'
 ```
+
+The `waterstop_*` token is scoped to the waterstop Cloudflare account and zone and needs Tunnel, DNS, and Single Redirect edit permissions.
 
 These are bootstrap secrets — they can't come from OpenBao since OpenTofu is configuring OpenBao itself.
 

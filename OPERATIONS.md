@@ -208,7 +208,8 @@ kubectl exec -n openbao openbao-0 -- env BAO_TOKEN=$ROOT_TOKEN bao kv put kv/wat
 kubectl -n flux-system get receiver waterstop-static-git -o jsonpath='{.status.webhookPath}'
 kubectl -n flux-system get receiver waterstop-static-image -o jsonpath='{.status.webhookPath}'
 
-# 3. Force ESO sync
+# 3. Restart ESO after the OpenBao policy change (it caches its Kubernetes-auth token), then force sync
+kubectl -n flux-system rollout restart deploy/external-secrets
 kubectl annotate externalsecret -n flux-system waterstop-static-webhook force-sync=$(date +%s) --overwrite
 ```
 
@@ -226,6 +227,8 @@ Then configure the webhook in the **waterstop-static repo → Settings → Webho
 Flux validates via `X-Hub-Signature` HMAC (not the Authorization header).
 
 The image receiver is wired into zot's event sinks, so image pushes trigger the `waterstop-static-image` Receiver immediately and the ImageRepository re-scans without waiting for the 12h interval (see Image webhook below).
+
+A tunnel credentials/config change requires `kubectl -n kube-system rollout restart deploy/waterstop-cloudflared`; the subPath mounts do not update in place.
 
 ### Force ESO sync
 
@@ -255,8 +258,9 @@ To add a new image webhook (e.g. after migrating another repo to zot):
 # 2. Get the generated webhook path (after Flux applies the receiver)
 echo "internal: http://webhook-receiver.flux-system.svc.cluster.local:80$(kubectl get receiver -n flux-system <receiver-name> -o jsonpath='{.status.webhookPath}')"
 
-# 3. Add the address to zot's events sinks (clusters/default/infra/apps/zot/config.json)
-#    and restart zot (ConfigMap is subPath-mounted):
+# 3. Add the address to zot's events sinks (clusters/default/infra/apps/zot/config.json).
+#    Flux rolls zot automatically: the kustomize ConfigMap hash changes the
+#    Deployment's volume reference. Only if that does not happen:
 kubectl rollout restart deployment -n zot zot
 ```
 
