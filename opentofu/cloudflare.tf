@@ -166,3 +166,111 @@ resource "cloudflare_dns_record" "dashboard_netbird_dev" {
   proxied = false
   ttl     = 1
 }
+
+resource "random_id" "waterstop_tunnel_secret" {
+  byte_length = 32
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared" "waterstop" {
+  provider      = cloudflare.waterstop
+  account_id    = var.waterstop_cloudflare_account_id
+  name          = "waterstop-tunnel"
+  tunnel_secret = random_id.waterstop_tunnel_secret.b64_std
+}
+
+locals {
+  waterstop_credentials_json = jsonencode({
+    AccountTag   = var.waterstop_cloudflare_account_id
+    TunnelID     = cloudflare_zero_trust_tunnel_cloudflared.waterstop.id
+    TunnelSecret = random_id.waterstop_tunnel_secret.b64_std
+    TunnelName   = "waterstop-tunnel"
+  })
+
+  waterstop_config_yaml = <<-EOF
+    tunnel: ${cloudflare_zero_trust_tunnel_cloudflared.waterstop.id}
+    credentials-file: /etc/cloudflared/credentials.json
+    transport-loglevel: warn
+    ingress:
+      - hostname: waterstop.id
+        service: http://traefik.kube-system.svc.cluster.local:80
+      - hostname: www.waterstop.id
+        service: http://traefik.kube-system.svc.cluster.local:80
+      - service: http_status:404
+  EOF
+}
+
+resource "kubernetes_secret_v1" "waterstop_cloudflared_credentials" {
+  metadata {
+    name      = "waterstop-cloudflared-credentials"
+    namespace = "kube-system"
+    labels = {
+      "app.kubernetes.io/name"       = "waterstop-cloudflared"
+      "app.kubernetes.io/part-of"    = "waterstop"
+      "app.kubernetes.io/managed-by" = "flux"
+    }
+  }
+  type = "Opaque"
+  data = {
+    "credentials.json" = local.waterstop_credentials_json
+  }
+}
+
+resource "kubernetes_config_map_v1" "waterstop_cloudflared_config" {
+  metadata {
+    name      = "waterstop-cloudflared-config"
+    namespace = "kube-system"
+    labels = {
+      "app.kubernetes.io/name"       = "waterstop-cloudflared"
+      "app.kubernetes.io/part-of"    = "waterstop"
+      "app.kubernetes.io/managed-by" = "flux"
+    }
+  }
+  data = {
+    "config.yaml" = local.waterstop_config_yaml
+  }
+}
+
+resource "cloudflare_dns_record" "waterstop_apex" {
+  provider = cloudflare.waterstop
+  zone_id  = var.waterstop_cloudflare_zone_id
+  name     = "@"
+  type     = "CNAME"
+  content  = "${cloudflare_zero_trust_tunnel_cloudflared.waterstop.id}.cfargotunnel.com"
+  proxied  = true
+  ttl      = 1
+}
+
+resource "cloudflare_dns_record" "waterstop_www" {
+  provider = cloudflare.waterstop
+  zone_id  = var.waterstop_cloudflare_zone_id
+  name     = "www"
+  type     = "CNAME"
+  content  = "${cloudflare_zero_trust_tunnel_cloudflared.waterstop.id}.cfargotunnel.com"
+  proxied  = true
+  ttl      = 1
+}
+
+resource "cloudflare_ruleset" "waterstop_www_redirect" {
+  provider    = cloudflare.waterstop
+  zone_id     = var.waterstop_cloudflare_zone_id
+  name        = "redirect-www-to-apex"
+  description = "Permanent redirect www.waterstop.id to waterstop.id"
+  kind        = "zone"
+  phase       = "http_request_dynamic_redirect"
+
+  rules = [{
+    description = "Redirect www to apex"
+    expression  = "(http.host eq \"www.waterstop.id\")"
+    action      = "redirect"
+    enabled     = true
+    action_parameters = {
+      from_value = {
+        status_code           = 301
+        preserve_query_string = true
+        target_url = {
+          expression = "concat(\"https://waterstop.id\", http.request.uri.path)"
+        }
+      }
+    }
+  }]
+}

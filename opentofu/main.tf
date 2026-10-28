@@ -25,6 +25,11 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+provider "cloudflare" {
+  alias     = "waterstop"
+  api_token = var.waterstop_cloudflare_api_token
+}
+
 provider "vault" {
   address         = var.openbao_addr
   token           = var.openbao_token

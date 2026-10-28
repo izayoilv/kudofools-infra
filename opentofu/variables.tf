@@ -25,3 +25,19 @@ variable "openbao_token" {
   type        = string
   sensitive   = true
 }
+
+variable "waterstop_cloudflare_api_token" {
+  description = "Cloudflare API token for the waterstop.id account (tunnel + DNS + redirects)"
+  type        = string
+  sensitive   = true
+}
+
+variable "waterstop_cloudflare_account_id" {
+  description = "Cloudflare account ID for waterstop.id"
+  type        = string
+}
+
+variable "waterstop_cloudflare_zone_id" {
+  description = "Cloudflare zone ID for waterstop.id"
+  type        = string
+}
