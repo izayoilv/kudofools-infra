@@ -21,6 +21,7 @@ spec:
         app.kubernetes.io/part-of: waterstop
         app.kubernetes.io/managed-by: flux
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:2026.10.5
